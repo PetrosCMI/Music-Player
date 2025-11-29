@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Music Player</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .player-container {
+            background: #1a1a2e;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            padding: 32px;
+            width: 100%;
+            max-width: 450px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .header h1 {
+            color: white;
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            color: #9ca3af;
+            font-size: 14px;
+        }
+
+        .track-info {
+            background: #16213e;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .album-art {
+            width: 128px;
+            height: 128px;
+            background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
+            border-radius: 12px;
+            margin: 0 auto 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .album-art svg {
+            width: 64px;
+            height: 64px;
+            color: white;
+        }
+
+        .track-title {
+            color: white;
+            font-size: 18px;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 4px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .track-number {
+            color: #9ca3af;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .progress-container {
+            margin-bottom: 24px;
+        }
+
+        .speed-control {
+            margin-bottom: 24px;
+        }
+
+        .speed-label {
+            color: #9ca3af;
+            font-size: 14px;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .speed-buttons {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .speed-btn {
+            background: #374151;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .speed-btn:hover {
+            background: #4b5563;
+        }
+
+        .speed-btn.active {
+            background: #8b5cf6;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #374151;
+            border-radius: 4px;
+            appearance: none;
+            cursor: pointer;
+            outline: none;
+        }
+
+        .progress-bar::-webkit-slider-thumb {
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            background: #8b5cf6;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .progress-bar::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            background: #8b5cf6;
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+        }
+
+        .time-display {
+            display: flex;
+            justify-content: space-between;
+            color: #9ca3af;
+            font-size: 14px;
+            margin-top: 8px;
+        }
+
+        .controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .control-btn {
+            background: #374151;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+            color: white;
+        }
+
+        .control-btn:hover:not(:disabled) {
+            background: #4b5563;
+        }
+
+        .control-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .control-btn.small {
+            width: 48px;
+            height: 48px;
+            padding: 12px;
+        }
+
+        .control-btn.large {
+            width: 64px;
+            height: 64px;
+            padding: 16px;
+            background: #8b5cf6;
+        }
+
+        .control-btn.large:hover:not(:disabled) {
+            background: #7c3aed;
+        }
+
+        .control-btn.active {
+            background: #8b5cf6;
+        }
+
+        .control-btn.active:hover {
+            background: #7c3aed;
+        }
+
+        .file-selector {
+            text-align: center;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .select-btn {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: background 0.2s;
+        }
+
+        .select-btn:hover {
+            background: #2563eb;
+        }
+
+        .playlist {
+            margin-top: 24px;
+            max-height: 200px;
+            overflow-y: auto;
+            background: #16213e;
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        .playlist h3 {
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .playlist-item {
+            padding: 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+            color: #d1d5db;
+            font-size: 14px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .playlist-item:hover {
+            background: #374151;
+        }
+
+        .playlist-item.active {
+            background: #8b5cf6;
+            color: white;
+        }
+
+        .playlist::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .playlist::-webkit-scrollbar-track {
+            background: #1a1a2e;
+            border-radius: 4px;
+        }
+
+        .playlist::-webkit-scrollbar-thumb {
+            background: #374151;
+            border-radius: 4px;
+        }
+
+        .playlist::-webkit-scrollbar-thumb:hover {
+            background: #4b5563;
+        }
+    </style>
+</head>
+<body>
+    <div class="player-container">
+        <div class="header">
+            <h1>Music Player</h1>
+            <p id="track-count">No tracks loaded</p>
+        </div>
+
+        <div class="track-info">
+            <div class="album-art">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                </svg>
+            </div>
+            <div class="track-title" id="track-title">No track selected</div>
+            <div class="track-number" id="track-number">Track 0 of 0</div>
+        </div>
+
+        <div class="progress-container">
+            <input type="range" class="progress-bar" id="progress-bar" min="0" max="100" value="0">
+            <div class="time-display">
+                <span id="current-time">0:00</span>
+                <span id="duration">0:00</span>
+            </div>
+        </div>
+
+        <div class="speed-control">
+            <div class="speed-label">Playback Speed</div>
+            <div class="speed-buttons">
+                <button class="speed-btn" data-speed="0.5">0.5x</button>
+                <button class="speed-btn" data-speed="0.75">0.75x</button>
+                <button class="speed-btn active" data-speed="1">1x</button>
+                <button class="speed-btn" data-speed="1.25">1.25x</button>
+                <button class="speed-btn" data-speed="1.5">1.5x</button>
+                <button class="speed-btn" data-speed="2">2x</button>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="control-btn small" id="loop-btn" title="Loop mode">
+                <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <polyline points="17 1 21 5 17 9"></polyline>
+                    <path d="M3 11V9a4 4 0 0 1 4-4h14"></path>
+                    <polyline points="7 23 3 19 7 15"></polyline>
+                    <path d="M21 13v2a4 4 0 0 1-4 4H3"></path>
+                </svg>
+            </button>
+
+            <button class="control-btn large" id="play-pause-btn" disabled>
+                <svg id="play-icon" width="32" height="32" fill="currentColor" viewBox="0 0 24 24">
+                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                </svg>
+                <svg id="pause-icon" width="32" height="32" fill="currentColor" viewBox="0 0 24 24" style="display: none;">
+                    <rect x="6" y="4" width="4" height="16"></rect>
+                    <rect x="14" y="4" width="4" height="16"></rect>
+                </svg>
+            </button>
+
+            <button class="control-btn small" id="skip-btn" title="Skip forward 60s" disabled>
+                <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <polygon points="5 4 15 12 5 20 5 4"></polygon>
+                    <line x1="19" y1="5" x2="19" y2="19"></line>
+                </svg>
+            </button>
+        </div>
+
+        <div class="file-selector">
+            <input type="file" class="file-input" id="file-input" multiple accept="audio/*">
+            <button class="select-btn" id="select-btn">
+                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                </svg>
+                Select Music Files
+            </button>
+        </div>
+
+        <div class="playlist" id="playlist-container" style="display: none;">
+            <h3>Playlist</h3>
+            <div id="playlist"></div>
+        </div>
+    </div>
+
+    <audio id="audio-player"></audio>
+
+    <script>
+        // Elements
+        const audio = document.getElementById('audio-player');
+        const fileInput = document.getElementById('file-input');
+        const selectBtn = document.getElementById('select-btn');
+        const playPauseBtn = document.getElementById('play-pause-btn');
+        const playIcon = document.getElementById('play-icon');
+        const pauseIcon = document.getElementById('pause-icon');
+        const skipBtn = document.getElementById('skip-btn');
+        const loopBtn = document.getElementById('loop-btn');
+        const progressBar = document.getElementById('progress-bar');
+        const currentTimeEl = document.getElementById('current-time');
+        const durationEl = document.getElementById('duration');
+        const trackTitle = document.getElementById('track-title');
+        const trackNumber = document.getElementById('track-number');
+        const trackCount = document.getElementById('track-count');
+        const playlistContainer = document.getElementById('playlist-container');
+        const playlist = document.getElementById('playlist');
+        const speedButtons = document.querySelectorAll('.speed-btn');
+
+        // State
+        let audioFiles = [];
+        let currentTrackIndex = 0;
+        let isPlaying = false;
+        let loopMode = 'none'; // 'none', 'all', 'one'
+        let playbackSpeed = 1;
+
+        // Load saved state from localStorage
+        function loadSavedState() {
+            try {
+                const savedState = localStorage.getItem('musicPlayerState');
+                if (savedState) {
+                    const state = JSON.parse(savedState);
+                    currentTrackIndex = state.currentTrackIndex || 0;
+                    loopMode = state.loopMode || 'none';
+                    playbackSpeed = state.playbackSpeed || 1;
+                    
+                    // Update loop button
+                    if (loopMode !== 'none') {
+                        loopBtn.classList.add('active');
+                        loopBtn.title = loopMode === 'all' ? 'Loop: All' : 'Loop: One';
+                    }
+                    
+                    // Update speed button
+                    speedButtons.forEach(btn => {
+                        btn.classList.remove('active');
+                        if (parseFloat(btn.dataset.speed) === playbackSpeed) {
+                            btn.classList.add('active');
+                        }
+                    });
+                    
+                    return state.currentTime || 0;
+                }
+            } catch (e) {
+                console.error('Error loading saved state:', e);
+            }
+            return 0;
+        }
+
+        // Save state to localStorage
+        function saveState() {
+            try {
+                const state = {
+                    currentTrackIndex: currentTrackIndex,
+                    currentTime: audio.currentTime || 0,
+                    loopMode: loopMode,
+                    playbackSpeed: playbackSpeed
+                };
+                localStorage.setItem('musicPlayerState', JSON.stringify(state));
+            } catch (e) {
+                console.error('Error saving state:', e);
+            }
+        }
+
+        // Save state periodically while playing
+        setInterval(() => {
+            if (audioFiles.length > 0) {
+                saveState();
+            }
+        }, 5000); // Save every 5 seconds
+
+        // Format time
+        function formatTime(seconds) {
+            if (!seconds || isNaN(seconds)) return '0:00';
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        // Update UI
+        function updateUI() {
+            if (audioFiles.length > 0) {
+                const file = audioFiles[currentTrackIndex];
+                trackTitle.textContent = file.name;
+                trackNumber.textContent = `Track ${currentTrackIndex + 1} of ${audioFiles.length}`;
+                trackCount.textContent = `${audioFiles.length} track${audioFiles.length !== 1 ? 's' : ''} loaded`;
+                playPauseBtn.disabled = false;
+                skipBtn.disabled = false;
+            } else {
+                trackTitle.textContent = 'No track selected';
+                trackNumber.textContent = 'Track 0 of 0';
+                trackCount.textContent = 'No tracks loaded';
+                playPauseBtn.disabled = true;
+                skipBtn.disabled = true;
+            }
+            updatePlaylistUI();
+        }
+
+        // Update playlist UI
+        function updatePlaylistUI() {
+            playlist.innerHTML = '';
+            audioFiles.forEach((file, index) => {
+                const item = document.createElement('div');
+                item.className = 'playlist-item' + (index === currentTrackIndex ? ' active' : '');
+                item.textContent = file.name;
+                item.onclick = () => loadTrack(index);
+                playlist.appendChild(item);
+            });
+        }
+
+        // Load track
+        function loadTrack(index) {
+            if (audioFiles.length === 0) return;
+            
+            currentTrackIndex = index;
+            const file = audioFiles[currentTrackIndex];
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                audio.src = e.target.result;
+                audio.load();
+                audio.playbackRate = playbackSpeed;
+                
+                // Check if we should resume from saved position
+                const savedTime = loadSavedState();
+                if (savedTime > 0 && index === currentTrackIndex) {
+                    audio.currentTime = savedTime;
+                }
+                
+                updateUI();
+                if (isPlaying) {
+                    audio.play();
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // File selection
+        selectBtn.onclick = () => fileInput.click();
+        
+        fileInput.onchange = (e) => {
+            const files = Array.from(e.target.files).filter(file => 
+                file.type.startsWith('audio/')
+            );
+            
+            if (files.length > 0) {
+                audioFiles = files;
+                const savedTrackIndex = loadSavedState();
+                // Only use saved index if it's valid for current file list
+                if (currentTrackIndex >= files.length) {
+                    currentTrackIndex = 0;
+                }
+                playlistContainer.style.display = 'block';
+                loadTrack(currentTrackIndex);
+            }
+        };
+
+        // Play/Pause
+        playPauseBtn.onclick = () => {
+            if (isPlaying) {
+                audio.pause();
+            } else {
+                audio.play();
+            }
+        };
+
+        audio.onplay = () => {
+            isPlaying = true;
+            playIcon.style.display = 'none';
+            pauseIcon.style.display = 'block';
+        };
+
+        audio.onpause = () => {
+            isPlaying = false;
+            playIcon.style.display = 'block';
+            pauseIcon.style.display = 'none';
+        };
+
+        // Skip forward 60 seconds
+        skipBtn.onclick = () => {
+            audio.currentTime = Math.min(audio.currentTime + 60, audio.duration);
+        };
+
+        // Loop mode
+        loopBtn.onclick = () => {
+            const modes = ['none', 'all', 'one'];
+            const currentIndex = modes.indexOf(loopMode);
+            loopMode = modes[(currentIndex + 1) % modes.length];
+            
+            if (loopMode === 'none') {
+                loopBtn.classList.remove('active');
+                loopBtn.title = 'Loop: Off';
+            } else if (loopMode === 'all') {
+                loopBtn.classList.add('active');
+                loopBtn.title = 'Loop: All';
+            } else {
+                loopBtn.classList.add('active');
+                loopBtn.title = 'Loop: One';
+            }
+            
+            saveState();
+        };
+
+        // Track ended
+        audio.onended = () => {
+            if (loopMode === 'one') {
+                audio.currentTime = 0;
+                audio.play();
+            } else if (loopMode === 'all') {
+                const nextIndex = (currentTrackIndex + 1) % audioFiles.length;
+                loadTrack(nextIndex);
+                audio.play();
+            } else {
+                if (currentTrackIndex < audioFiles.length - 1) {
+                    loadTrack(currentTrackIndex + 1);
+                    audio.play();
+                }
+            }
+        };
+
+        // Progress bar
+        audio.ontimeupdate = () => {
+            currentTimeEl.textContent = formatTime(audio.currentTime);
+            progressBar.value = (audio.currentTime / audio.duration) * 100 || 0;
+        };
+
+        audio.onloadedmetadata = () => {
+            durationEl.textContent = formatTime(audio.duration);
+            progressBar.max = 100;
+        };
+
+        progressBar.oninput = (e) => {
+            const time = (e.target.value / 100) * audio.duration;
+            audio.currentTime = time;
+        };
+
+        // Playback speed control
+        speedButtons.forEach(btn => {
+            btn.onclick = () => {
+                const speed = parseFloat(btn.dataset.speed);
+                playbackSpeed = speed;
+                audio.playbackRate = speed;
+                
+                // Update active state
+                speedButtons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                saveState();
+            };
+        });
+
+        // Media Session API (for headset controls)
+        let lastPlayPauseTime = 0;
+        const DOUBLE_CLICK_THRESHOLD = 300; // milliseconds
+
+        if ('mediaSession' in navigator) {
+            navigator.mediaSession.setActionHandler('play', () => {
+                const now = Date.now();
+                const timeSinceLastClick = now - lastPlayPauseTime;
+                
+                if (timeSinceLastClick < DOUBLE_CLICK_THRESHOLD) {
+                    // Double-click detected - skip forward
+                    audio.currentTime = Math.min(audio.currentTime + 60, audio.duration);
+                } else {
+                    // Single click - play
+                    audio.play();
+                }
+                
+                lastPlayPauseTime = now;
+            });
+
+            navigator.mediaSession.setActionHandler('pause', () => {
+                const now = Date.now();
+                const timeSinceLastClick = now - lastPlayPauseTime;
+                
+                if (timeSinceLastClick < DOUBLE_CLICK_THRESHOLD) {
+                    // Double-click detected - skip forward
+                    audio.currentTime = Math.min(audio.currentTime + 60, audio.duration);
+                    // Resume playing after skip
+                    audio.play();
+                } else {
+                    // Single click - pause
+                    audio.pause();
+                }
+                
+                lastPlayPauseTime = now;
+            });
+
+            navigator.mediaSession.setActionHandler('seekforward', () => {
+                audio.currentTime = Math.min(audio.currentTime + 60, audio.duration);
+            });
+
+            navigator.mediaSession.setActionHandler('previoustrack', () => {
+                // Skip backward 60 seconds instead of previous track
+                audio.currentTime = Math.max(audio.currentTime - 60, 0);
+            });
+
+            navigator.mediaSession.setActionHandler('nexttrack', () => {
+                // Skip forward 60 seconds instead of next track
+                audio.currentTime = Math.min(audio.currentTime + 60, audio.duration);
+            });
+        }
+
+        // Update media session metadata when track changes
+        function updateMediaSession() {
+            if ('mediaSession' in navigator && audioFiles.length > 0) {
+                const file = audioFiles[currentTrackIndex];
+                navigator.mediaSession.metadata = new MediaMetadata({
+                    title: file.name,
+                    artist: 'Music Player',
+                    album: `Track ${currentTrackIndex + 1} of ${audioFiles.length}`
+                });
+            }
+        }
+
+        // Call updateMediaSession when loading tracks
+        const originalLoadTrack = loadTrack;
+        loadTrack = function(index) {
+            originalLoadTrack(index);
+            updateMediaSession();
+        };
+
+        // Initialize
+        loadSavedState();
+        updateUI();
+    </script>
+</body>
+</html>
