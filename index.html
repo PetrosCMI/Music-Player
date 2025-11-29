@@ -101,6 +101,45 @@
             font-size: 14px;
             text-align: center;
             margin-bottom: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .speed-value {
+            color: #8b5cf6;
+            font-weight: 600;
+            min-width: 45px;
+        }
+
+        .speed-slider {
+            width: 100%;
+            height: 6px;
+            background: #374151;
+            border-radius: 3px;
+            appearance: none;
+            cursor: pointer;
+            outline: none;
+            margin-bottom: 12px;
+        }
+
+        .speed-slider::-webkit-slider-thumb {
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            background: #8b5cf6;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .speed-slider::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            background: #8b5cf6;
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
         }
 
         .speed-buttons {
@@ -326,11 +365,14 @@
         </div>
 
         <div class="speed-control">
-            <div class="speed-label">Playback Speed</div>
+            <div class="speed-label">
+                Playback Speed: <span class="speed-value" id="speed-value">1.00x</span>
+            </div>
+            <input type="range" class="speed-slider" id="speed-slider" min="50" max="200" value="100" step="5">
             <div class="speed-buttons">
                 <button class="speed-btn" data-speed="0.5">0.5x</button>
                 <button class="speed-btn" data-speed="0.75">0.75x</button>
-                <button class="speed-btn active" data-speed="1">1x</button>
+                <button class="speed-btn" data-speed="1">1x</button>
                 <button class="speed-btn" data-speed="1.25">1.25x</button>
                 <button class="speed-btn" data-speed="1.5">1.5x</button>
                 <button class="speed-btn" data-speed="2">2x</button>
@@ -402,6 +444,8 @@
         const playlistContainer = document.getElementById('playlist-container');
         const playlist = document.getElementById('playlist');
         const speedButtons = document.querySelectorAll('.speed-btn');
+        const speedSlider = document.getElementById('speed-slider');
+        const speedValue = document.getElementById('speed-value');
 
         // State
         let audioFiles = [];
@@ -426,13 +470,15 @@
                         loopBtn.title = loopMode === 'all' ? 'Loop: All' : 'Loop: One';
                     }
                     
-                    // Update speed button
+                    // Update speed button and slider
                     speedButtons.forEach(btn => {
                         btn.classList.remove('active');
                         if (parseFloat(btn.dataset.speed) === playbackSpeed) {
                             btn.classList.add('active');
                         }
                     });
+                    speedSlider.value = playbackSpeed * 100;
+                    speedValue.textContent = playbackSpeed.toFixed(2) + 'x';
                     
                     return state.currentTime || 0;
                 }
@@ -629,12 +675,33 @@
             audio.currentTime = time;
         };
 
-        // Playback speed control
+        // Playback speed control - slider
+        speedSlider.oninput = (e) => {
+            const speed = parseFloat(e.target.value) / 100;
+            playbackSpeed = speed;
+            audio.playbackRate = speed;
+            speedValue.textContent = speed.toFixed(2) + 'x';
+            
+            // Clear active state from preset buttons if not matching
+            speedButtons.forEach(btn => {
+                if (parseFloat(btn.dataset.speed) === speed) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+            
+            saveState();
+        };
+
+        // Playback speed control - preset buttons
         speedButtons.forEach(btn => {
             btn.onclick = () => {
                 const speed = parseFloat(btn.dataset.speed);
                 playbackSpeed = speed;
                 audio.playbackRate = speed;
+                speedSlider.value = speed * 100;
+                speedValue.textContent = speed.toFixed(2) + 'x';
                 
                 // Update active state
                 speedButtons.forEach(b => b.classList.remove('active'));
