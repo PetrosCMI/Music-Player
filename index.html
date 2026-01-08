@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Music Player</title>
+    <title>Music Player Pro</title>
     <style>
         * {
             margin: 0;
@@ -92,81 +92,6 @@
             margin-bottom: 24px;
         }
 
-        .speed-control {
-            margin-bottom: 24px;
-        }
-
-        .speed-label {
-            color: #9ca3af;
-            font-size: 14px;
-            text-align: center;
-            margin-bottom: 8px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .speed-value {
-            color: #8b5cf6;
-            font-weight: 600;
-            min-width: 45px;
-        }
-
-        .speed-slider {
-            width: 100%;
-            height: 6px;
-            background: #374151;
-            border-radius: 3px;
-            appearance: none;
-            cursor: pointer;
-            outline: none;
-            margin-bottom: 12px;
-        }
-
-        .speed-slider::-webkit-slider-thumb {
-            appearance: none;
-            width: 18px;
-            height: 18px;
-            background: #8b5cf6;
-            border-radius: 50%;
-            cursor: pointer;
-        }
-
-        .speed-slider::-moz-range-thumb {
-            width: 18px;
-            height: 18px;
-            background: #8b5cf6;
-            border-radius: 50%;
-            cursor: pointer;
-            border: none;
-        }
-
-        .speed-buttons {
-            display: flex;
-            gap: 8px;
-            justify-content: center;
-        }
-
-        .speed-btn {
-            background: #374151;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 6px;
-            font-size: 14px;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .speed-btn:hover {
-            background: #4b5563;
-        }
-
-        .speed-btn.active {
-            background: #8b5cf6;
-        }
-
         .progress-bar {
             width: 100%;
             height: 8px;
@@ -184,15 +109,6 @@
             background: #8b5cf6;
             border-radius: 50%;
             cursor: pointer;
-        }
-
-        .progress-bar::-moz-range-thumb {
-            width: 16px;
-            height: 16px;
-            background: #8b5cf6;
-            border-radius: 50%;
-            cursor: pointer;
-            border: none;
         }
 
         .time-display {
@@ -219,8 +135,9 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: background 0.2s;
+            transition: all 0.2s;
             color: white;
+            position: relative;
         }
 
         .control-btn:hover:not(:disabled) {
@@ -228,91 +145,115 @@
         }
 
         .control-btn:disabled {
-            opacity: 0.5;
+            opacity: 0.3;
             cursor: not-allowed;
         }
 
         .control-btn.small {
             width: 48px;
             height: 48px;
-            padding: 12px;
         }
 
         .control-btn.large {
             width: 64px;
             height: 64px;
-            padding: 16px;
             background: #8b5cf6;
-        }
-
-        .control-btn.large:hover:not(:disabled) {
-            background: #7c3aed;
         }
 
         .control-btn.active {
             background: #8b5cf6;
+            box-shadow: 0 0 15px rgba(139, 92, 246, 0.4);
         }
 
-        .control-btn.active:hover {
-            background: #7c3aed;
-        }
-
-        .file-selector {
-            text-align: center;
-        }
-
-        .file-input {
+        /* Repeat One Badge Styles */
+        #loop-one-badge {
             display: none;
+            font-family: sans-serif;
+            font-weight: bold;
+            font-size: 9px;
+            fill: white;
         }
 
-        .select-btn {
-            background: #3b82f6;
-            color: white;
-            border: none;
-            padding: 12px 24px;
+        [data-loop-mode="one"] #loop-one-badge {
+            display: block;
+        }
+
+        .speed-control {
+            margin-bottom: 24px;
+        }
+
+        .speed-label {
+            color: #9ca3af;
+            font-size: 14px;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .speed-value {
+            color: #8b5cf6;
+            font-weight: 600;
+        }
+
+        .speed-slider {
+            width: 100%;
+            height: 6px;
+            background: #374151;
+            border-radius: 3px;
+            appearance: none;
+            cursor: pointer;
+            outline: none;
+            margin-bottom: 12px;
+        }
+
+        .speed-slider::-webkit-slider-thumb {
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            background: #8b5cf6;
+            border-radius: 50%;
+        }
+
+        .file-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .select-btn, .clear-btn {
+            padding: 12px 20px;
             border-radius: 8px;
-            font-size: 16px;
+            font-size: 14px;
             cursor: pointer;
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            transition: background 0.2s;
+            border: none;
+            transition: opacity 0.2s;
+            color: white;
         }
 
-        .select-btn:hover {
-            background: #2563eb;
-        }
+        .select-btn { background: #3b82f6; }
+        .clear-btn { background: #ef4444; }
 
         .playlist {
             margin-top: 24px;
-            max-height: 200px;
+            max-height: 250px;
             overflow-y: auto;
             background: #16213e;
             border-radius: 12px;
             padding: 16px;
         }
 
-        .playlist h3 {
-            color: white;
-            font-size: 16px;
-            font-weight: 600;
-            margin-bottom: 12px;
-        }
-
         .playlist-item {
-            padding: 8px;
+            padding: 10px;
             border-radius: 6px;
             cursor: pointer;
-            transition: background 0.2s;
             color: #d1d5db;
             font-size: 14px;
+            white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .playlist-item:hover {
-            background: #374151;
+            border-bottom: 1px solid #1a1a2e;
         }
 
         .playlist-item.active {
@@ -320,23 +261,8 @@
             color: white;
         }
 
-        .playlist::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        .playlist::-webkit-scrollbar-track {
-            background: #1a1a2e;
-            border-radius: 4px;
-        }
-
-        .playlist::-webkit-scrollbar-thumb {
-            background: #374151;
-            border-radius: 4px;
-        }
-
-        .playlist::-webkit-scrollbar-thumb:hover {
-            background: #4b5563;
-        }
+        .playlist::-webkit-scrollbar { width: 6px; }
+        .playlist::-webkit-scrollbar-thumb { background: #374151; border-radius: 10px; }
     </style>
 </head>
 <body>
@@ -348,8 +274,8 @@
 
         <div class="track-info">
             <div class="album-art">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="64">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
                 </svg>
             </div>
             <div class="track-title" id="track-title">No track selected</div>
@@ -365,27 +291,18 @@
         </div>
 
         <div class="speed-control">
-            <div class="speed-label">
-                Playback Speed: <span class="speed-value" id="speed-value">1.00x</span>
-            </div>
+            <div class="speed-label">Speed: <span class="speed-value" id="speed-value">1.00x</span></div>
             <input type="range" class="speed-slider" id="speed-slider" min="50" max="200" value="100" step="5">
-            <div class="speed-buttons">
-                <button class="speed-btn" data-speed="0.5">0.5x</button>
-                <button class="speed-btn" data-speed="0.75">0.75x</button>
-                <button class="speed-btn" data-speed="1">1x</button>
-                <button class="speed-btn" data-speed="1.25">1.25x</button>
-                <button class="speed-btn" data-speed="1.5">1.5x</button>
-                <button class="speed-btn" data-speed="2">2x</button>
-            </div>
         </div>
 
         <div class="controls">
-            <button class="control-btn small" id="loop-btn" title="Loop mode">
-                <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <button class="control-btn small" id="loop-btn" title="Loop: Off" data-loop-mode="none">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <polyline points="17 1 21 5 17 9"></polyline>
                     <path d="M3 11V9a4 4 0 0 1 4-4h14"></path>
                     <polyline points="7 23 3 19 7 15"></polyline>
                     <path d="M21 13v2a4 4 0 0 1-4 4H3"></path>
+                    <text id="loop-one-badge" x="12" y="15.5" text-anchor="middle" stroke="none">1</text>
                 </svg>
             </button>
 
@@ -407,18 +324,13 @@
             </button>
         </div>
 
-        <div class="file-selector">
-            <input type="file" class="file-input" id="file-input" multiple accept="audio/*">
-            <button class="select-btn" id="select-btn">
-                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
-                </svg>
-                Select Music Files
-            </button>
+        <div class="file-actions">
+            <input type="file" id="file-input" multiple accept="audio/*" style="display: none;">
+            <button class="select-btn" id="select-btn">Add Songs</button>
+            <button class="clear-btn" id="clear-btn">Clear All</button>
         </div>
 
         <div class="playlist" id="playlist-container" style="display: none;">
-            <h3>Playlist</h3>
             <div id="playlist"></div>
         </div>
     </div>
@@ -430,361 +342,219 @@
         const audio = document.getElementById('audio-player');
         const fileInput = document.getElementById('file-input');
         const selectBtn = document.getElementById('select-btn');
+        const clearBtn = document.getElementById('clear-btn');
         const playPauseBtn = document.getElementById('play-pause-btn');
-        const playIcon = document.getElementById('play-icon');
-        const pauseIcon = document.getElementById('pause-icon');
-        const skipBtn = document.getElementById('skip-btn');
         const loopBtn = document.getElementById('loop-btn');
         const progressBar = document.getElementById('progress-bar');
-        const currentTimeEl = document.getElementById('current-time');
-        const durationEl = document.getElementById('duration');
-        const trackTitle = document.getElementById('track-title');
-        const trackNumber = document.getElementById('track-number');
-        const trackCount = document.getElementById('track-count');
-        const playlistContainer = document.getElementById('playlist-container');
-        const playlist = document.getElementById('playlist');
-        const speedButtons = document.querySelectorAll('.speed-btn');
         const speedSlider = document.getElementById('speed-slider');
-        const speedValue = document.getElementById('speed-value');
+        const trackTitle = document.getElementById('track-title');
+        const playlist = document.getElementById('playlist');
 
         // State
-        let audioFiles = [];
+        let audioFiles = []; // Array of objects {name, data (Blob)}
         let currentTrackIndex = 0;
         let isPlaying = false;
-        let loopMode = 'none'; // 'none', 'all', 'one'
+        let loopMode = 'none'; // none, all, one
         let playbackSpeed = 1;
+        let wakeLock = null;
 
-        // Load saved state from localStorage
-        function loadSavedState() {
-            try {
-                const savedState = localStorage.getItem('musicPlayerState');
-                if (savedState) {
-                    const state = JSON.parse(savedState);
-                    currentTrackIndex = state.currentTrackIndex || 0;
-                    loopMode = state.loopMode || 'none';
-                    playbackSpeed = state.playbackSpeed || 1;
-                    
-                    // Update loop button
-                    if (loopMode !== 'none') {
-                        loopBtn.classList.add('active');
-                        loopBtn.title = loopMode === 'all' ? 'Loop: All' : 'Loop: One';
-                    }
-                    
-                    // Update speed button and slider
-                    speedButtons.forEach(btn => {
-                        btn.classList.remove('active');
-                        if (parseFloat(btn.dataset.speed) === playbackSpeed) {
-                            btn.classList.add('active');
-                        }
-                    });
-                    speedSlider.value = playbackSpeed * 100;
-                    speedValue.textContent = playbackSpeed.toFixed(2) + 'x';
-                    
-                    return state.currentTime || 0;
+        // --- DATABASE LOGIC (IndexedDB) ---
+        const dbName = "MusicPlayerDB";
+        let db;
+        const dbRequest = indexedDB.open(dbName, 1);
+
+        dbRequest.onupgradeneeded = (e) => {
+            db = e.target.result;
+            if (!db.objectStoreNames.contains("songs")) {
+                db.createObjectStore("songs", { keyPath: "id", autoIncrement: true });
+            }
+        };
+
+        dbRequest.onsuccess = (e) => {
+            db = e.target.result;
+            loadPlaylistFromDB();
+        };
+
+        async function saveFilesToDB(files) {
+            const transaction = db.transaction(["songs"], "readwrite");
+            const store = transaction.objectStore("songs");
+            for (const file of files) {
+                store.add({ name: file.name, data: file });
+            }
+            transaction.oncomplete = () => loadPlaylistFromDB();
+        }
+
+        async function loadPlaylistFromDB() {
+            const transaction = db.transaction(["songs"], "readonly");
+            const store = transaction.objectStore("songs");
+            const getAll = store.getAll();
+
+            getAll.onsuccess = () => {
+                audioFiles = getAll.result;
+                if (audioFiles.length > 0) {
+                    document.getElementById('playlist-container').style.display = 'block';
+                    updateUI();
+                    // Recover last session position
+                    const saved = JSON.parse(localStorage.getItem('musicPlayerState') || '{}');
+                    currentTrackIndex = saved.currentTrackIndex < audioFiles.length ? saved.currentTrackIndex : 0;
+                    loadTrack(currentTrackIndex, false); 
                 }
-            } catch (e) {
-                console.error('Error loading saved state:', e);
-            }
-            return 0;
+            };
         }
 
-        // Save state to localStorage
-        function saveState() {
+        // --- WAKE LOCK (Keep Foreground) ---
+        async function requestWakeLock() {
             try {
-                const state = {
-                    currentTrackIndex: currentTrackIndex,
-                    currentTime: audio.currentTime || 0,
-                    loopMode: loopMode,
-                    playbackSpeed: playbackSpeed
-                };
-                localStorage.setItem('musicPlayerState', JSON.stringify(state));
-            } catch (e) {
-                console.error('Error saving state:', e);
-            }
+                if ('wakeLock' in navigator) {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                }
+            } catch (err) { console.warn("Wake Lock failed"); }
         }
 
-        // Save state periodically while playing
-        setInterval(() => {
-            if (audioFiles.length > 0) {
-                saveState();
+        // --- PLAYER LOGIC ---
+        function loadTrack(index, shouldPlay = true) {
+            if (!audioFiles[index]) return;
+            currentTrackIndex = index;
+            const fileObj = audioFiles[index];
+            
+            // Cleanup old URL to save memory
+            if (audio.src) URL.revokeObjectURL(audio.src);
+            
+            audio.src = URL.createObjectURL(fileObj.data);
+            audio.playbackRate = playbackSpeed;
+            trackTitle.textContent = fileObj.name;
+            
+            updateUI();
+            if (shouldPlay) {
+                audio.play();
+                requestWakeLock();
             }
-        }, 5000); // Save every 5 seconds
-
-        // Format time
-        function formatTime(seconds) {
-            if (!seconds || isNaN(seconds)) return '0:00';
-            const mins = Math.floor(seconds / 60);
-            const secs = Math.floor(seconds % 60);
-            return `${mins}:${secs.toString().padStart(2, '0')}`;
+            saveState();
         }
 
-        // Update UI
         function updateUI() {
-            if (audioFiles.length > 0) {
-                const file = audioFiles[currentTrackIndex];
-                trackTitle.textContent = file.name;
-                trackNumber.textContent = `Track ${currentTrackIndex + 1} of ${audioFiles.length}`;
-                trackCount.textContent = `${audioFiles.length} track${audioFiles.length !== 1 ? 's' : ''} loaded`;
-                playPauseBtn.disabled = false;
-                skipBtn.disabled = false;
-            } else {
-                trackTitle.textContent = 'No track selected';
-                trackNumber.textContent = 'Track 0 of 0';
-                trackCount.textContent = 'No tracks loaded';
-                playPauseBtn.disabled = true;
-                skipBtn.disabled = true;
-            }
-            updatePlaylistUI();
-        }
-
-        // Update playlist UI
-        function updatePlaylistUI() {
+            document.getElementById('track-count').textContent = `${audioFiles.length} tracks loaded`;
+            document.getElementById('track-number').textContent = `Track ${currentTrackIndex + 1} of ${audioFiles.length}`;
+            playPauseBtn.disabled = audioFiles.length === 0;
+            document.getElementById('skip-btn').disabled = audioFiles.length === 0;
+            
+            // Playlist visual
             playlist.innerHTML = '';
-            audioFiles.forEach((file, index) => {
+            audioFiles.forEach((file, idx) => {
                 const item = document.createElement('div');
-                item.className = 'playlist-item' + (index === currentTrackIndex ? ' active' : '');
+                item.className = `playlist-item ${idx === currentTrackIndex ? 'active' : ''}`;
                 item.textContent = file.name;
-                item.onclick = () => loadTrack(index);
+                item.onclick = () => loadTrack(idx);
                 playlist.appendChild(item);
             });
         }
 
-        // Load track
-        function loadTrack(index) {
-            if (audioFiles.length === 0) return;
-            
-            currentTrackIndex = index;
-            const file = audioFiles[currentTrackIndex];
-            
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                audio.src = e.target.result;
-                audio.load();
-                audio.playbackRate = playbackSpeed;
-                
-                // Check if we should resume from saved position
-                const savedTime = loadSavedState();
-                if (savedTime > 0 && index === currentTrackIndex) {
-                    audio.currentTime = savedTime;
-                }
-                
-                updateUI();
-                if (isPlaying) {
-                    audio.play();
-                }
-            };
-            reader.readAsDataURL(file);
+        function saveState() {
+            localStorage.setItem('musicPlayerState', JSON.stringify({
+                currentTrackIndex,
+                loopMode,
+                playbackSpeed
+            }));
         }
 
-        // File selection
+        // Events
         selectBtn.onclick = () => fileInput.click();
-        
-        fileInput.onchange = (e) => {
-            const files = Array.from(e.target.files).filter(file => 
-                file.type.startsWith('audio/')
-            );
-            
-            if (files.length > 0) {
-                audioFiles = files;
-                const savedTrackIndex = loadSavedState();
-                // Only use saved index if it's valid for current file list
-                if (currentTrackIndex >= files.length) {
-                    currentTrackIndex = 0;
-                }
-                playlistContainer.style.display = 'block';
-                loadTrack(currentTrackIndex);
+        fileInput.onchange = (e) => saveFilesToDB(Array.from(e.target.files));
+
+        clearBtn.onclick = () => {
+            if (confirm("Clear your library?")) {
+                const transaction = db.transaction(["songs"], "readwrite");
+                transaction.objectStore("songs").clear();
+                transaction.oncomplete = () => location.reload();
             }
         };
 
-        // Play/Pause
         playPauseBtn.onclick = () => {
-            if (isPlaying) {
-                audio.pause();
-            } else {
+            if (audio.paused) {
                 audio.play();
+                requestWakeLock();
+            } else {
+                audio.pause();
+                if (wakeLock) { wakeLock.release(); wakeLock = null; }
             }
         };
 
         audio.onplay = () => {
             isPlaying = true;
-            playIcon.style.display = 'none';
-            pauseIcon.style.display = 'block';
+            document.getElementById('play-icon').style.display = 'none';
+            document.getElementById('pause-icon').style.display = 'block';
         };
 
         audio.onpause = () => {
             isPlaying = false;
-            playIcon.style.display = 'block';
-            pauseIcon.style.display = 'none';
+            document.getElementById('play-icon').style.display = 'block';
+            document.getElementById('pause-icon').style.display = 'none';
         };
 
-        // Skip forward 60 seconds
-        skipBtn.onclick = () => {
-            audio.currentTime = Math.min(audio.currentTime + 60, audio.duration);
-        };
-
-        // Loop mode
+        // 3-State Loop Cycle
         loopBtn.onclick = () => {
             const modes = ['none', 'all', 'one'];
-            const currentIndex = modes.indexOf(loopMode);
-            loopMode = modes[(currentIndex + 1) % modes.length];
+            loopMode = modes[(modes.indexOf(loopMode) + 1) % 3];
             
-            if (loopMode === 'none') {
-                loopBtn.classList.remove('active');
-                loopBtn.title = 'Loop: Off';
-            } else if (loopMode === 'all') {
-                loopBtn.classList.add('active');
-                loopBtn.title = 'Loop: All';
-            } else {
-                loopBtn.classList.add('active');
-                loopBtn.title = 'Loop: One';
-            }
-            
+            loopBtn.setAttribute('data-loop-mode', loopMode);
+            loopBtn.classList.toggle('active', loopMode !== 'none');
+            loopBtn.title = `Loop: ${loopMode.charAt(0).toUpperCase() + loopMode.slice(1)}`;
             saveState();
         };
 
-        // Track ended
         audio.onended = () => {
             if (loopMode === 'one') {
                 audio.currentTime = 0;
                 audio.play();
-            } else if (loopMode === 'all') {
-                const nextIndex = (currentTrackIndex + 1) % audioFiles.length;
-                loadTrack(nextIndex);
-                audio.play();
-            } else {
-                if (currentTrackIndex < audioFiles.length - 1) {
-                    loadTrack(currentTrackIndex + 1);
-                    audio.play();
-                }
+            } else if (loopMode === 'all' || currentTrackIndex < audioFiles.length - 1) {
+                loadTrack((currentTrackIndex + 1) % audioFiles.length);
             }
         };
 
-        // Progress bar
+        // Progress & Speed
         audio.ontimeupdate = () => {
-            currentTimeEl.textContent = formatTime(audio.currentTime);
-            progressBar.value = (audio.currentTime / audio.duration) * 100 || 0;
-        };
-
-        audio.onloadedmetadata = () => {
-            durationEl.textContent = formatTime(audio.duration);
-            progressBar.max = 100;
+            const cur = audio.currentTime || 0;
+            const dur = audio.duration || 0;
+            document.getElementById('current-time').textContent = formatTime(cur);
+            document.getElementById('duration').textContent = formatTime(dur);
+            progressBar.value = (cur / dur) * 100 || 0;
         };
 
         progressBar.oninput = (e) => {
-            const time = (e.target.value / 100) * audio.duration;
-            audio.currentTime = time;
+            audio.currentTime = (e.target.value / 100) * audio.duration;
         };
 
-        // Playback speed control - slider
         speedSlider.oninput = (e) => {
-            const speed = parseFloat(e.target.value) / 100;
-            playbackSpeed = speed;
-            audio.playbackRate = speed;
-            speedValue.textContent = speed.toFixed(2) + 'x';
-            
-            // Clear active state from preset buttons if not matching
-            speedButtons.forEach(btn => {
-                if (parseFloat(btn.dataset.speed) === speed) {
-                    btn.classList.add('active');
-                } else {
-                    btn.classList.remove('active');
-                }
-            });
-            
+            playbackSpeed = e.target.value / 100;
+            audio.playbackRate = playbackSpeed;
+            document.getElementById('speed-value').textContent = playbackSpeed.toFixed(2) + 'x';
             saveState();
         };
 
-        // Playback speed control - preset buttons
-        speedButtons.forEach(btn => {
-            btn.onclick = () => {
-                const speed = parseFloat(btn.dataset.speed);
-                playbackSpeed = speed;
-                audio.playbackRate = speed;
-                speedSlider.value = speed * 100;
-                speedValue.textContent = speed.toFixed(2) + 'x';
-                
-                // Update active state
-                speedButtons.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                
-                saveState();
-            };
-        });
-
-        // Media Session API (for headset controls)
-        let lastPlayPauseTime = 0;
-        const DOUBLE_CLICK_THRESHOLD = 300; // milliseconds
-
-        if ('mediaSession' in navigator) {
-            navigator.mediaSession.setActionHandler('play', () => {
-                const now = Date.now();
-                const timeSinceLastClick = now - lastPlayPauseTime;
-                
-                if (timeSinceLastClick < DOUBLE_CLICK_THRESHOLD) {
-                    // Double-click detected - skip forward
-                    audio.currentTime = Math.min(audio.currentTime + 60, audio.duration);
-                } else {
-                    // Single click - play
-                    audio.play();
-                }
-                
-                lastPlayPauseTime = now;
-            });
-
-            navigator.mediaSession.setActionHandler('pause', () => {
-                const now = Date.now();
-                const timeSinceLastClick = now - lastPlayPauseTime;
-                
-                if (timeSinceLastClick < DOUBLE_CLICK_THRESHOLD) {
-                    // Double-click detected - skip forward
-                    audio.currentTime = Math.min(audio.currentTime + 60, audio.duration);
-                    // Resume playing after skip
-                    audio.play();
-                } else {
-                    // Single click - pause
-                    audio.pause();
-                }
-                
-                lastPlayPauseTime = now;
-            });
-
-            navigator.mediaSession.setActionHandler('seekforward', () => {
-                audio.currentTime = Math.min(audio.currentTime + 60, audio.duration);
-            });
-
-            navigator.mediaSession.setActionHandler('previoustrack', () => {
-                // Skip backward 60 seconds instead of previous track
-                audio.currentTime = Math.max(audio.currentTime - 60, 0);
-            });
-
-            navigator.mediaSession.setActionHandler('nexttrack', () => {
-                // Skip forward 60 seconds instead of next track
-                audio.currentTime = Math.min(audio.currentTime + 60, audio.duration);
-            });
-        }
-
-        // Update media session metadata when track changes
-        function updateMediaSession() {
-            if ('mediaSession' in navigator && audioFiles.length > 0) {
-                const file = audioFiles[currentTrackIndex];
-                navigator.mediaSession.metadata = new MediaMetadata({
-                    title: file.name,
-                    artist: 'Music Player',
-                    album: `Track ${currentTrackIndex + 1} of ${audioFiles.length}`
-                });
-            }
-        }
-
-        // Call updateMediaSession when loading tracks
-        const originalLoadTrack = loadTrack;
-        loadTrack = function(index) {
-            originalLoadTrack(index);
-            updateMediaSession();
+        document.getElementById('skip-btn').onclick = () => {
+            audio.currentTime = Math.min(audio.currentTime + 60, audio.duration);
         };
 
-        // Initialize
-        loadSavedState();
-        updateUI();
+        function formatTime(s) {
+            const m = Math.floor(s / 60);
+            const sec = Math.floor(s % 60);
+            return `${m}:${sec.toString().padStart(2, '0')}`;
+        }
+
+        // Recover state on load
+        window.onload = () => {
+            const saved = JSON.parse(localStorage.getItem('musicPlayerState') || '{}');
+            if (saved.loopMode) {
+                loopMode = saved.loopMode;
+                loopBtn.setAttribute('data-loop-mode', loopMode);
+                loopBtn.classList.toggle('active', loopMode !== 'none');
+            }
+            if (saved.playbackSpeed) {
+                playbackSpeed = saved.playbackSpeed;
+                speedSlider.value = playbackSpeed * 100;
+                document.getElementById('speed-value').textContent = playbackSpeed.toFixed(2) + 'x';
+            }
+        };
     </script>
 </body>
 </html>
