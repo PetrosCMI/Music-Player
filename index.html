@@ -3,101 +3,120 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Music Player Pro</title>
+    <title>Music Player</title>
     <style>
-        /* Preserving your original UI styles */
+        /* Restoring your original "Fine" Styles */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; padding: 20px; }
         .player-container { background: #1a1a2e; border-radius: 24px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5); padding: 32px; width: 100%; max-width: 450px; }
         .header { text-align: center; margin-bottom: 32px; }
         .header h1 { color: white; font-size: 28px; font-weight: bold; margin-bottom: 8px; }
+        .header p { color: #9ca3af; font-size: 14px; }
         .track-info { background: #16213e; border-radius: 16px; padding: 24px; margin-bottom: 24px; }
+        .album-art { width: 128px; height: 128px; background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%); border-radius: 12px; margin: 0 auto 16px; display: flex; align-items: center; justify-content: center; }
+        .album-art svg { width: 64px; height: 64px; color: white; }
         .track-title { color: white; font-size: 18px; font-weight: 600; text-align: center; margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .track-number { color: #9ca3af; font-size: 14px; text-align: center; }
         .progress-container { margin-bottom: 24px; }
+        .speed-control { margin-bottom: 24px; }
+        .speed-label { color: #9ca3af; font-size: 14px; text-align: center; margin-bottom: 8px; display: flex; justify-content: center; align-items: center; gap: 8px; }
+        .speed-value { color: #8b5cf6; font-weight: 600; min-width: 45px; }
+        .speed-slider { width: 100%; height: 6px; background: #374151; border-radius: 3px; appearance: none; cursor: pointer; outline: none; margin-bottom: 12px; }
+        .speed-slider::-webkit-slider-thumb { appearance: none; width: 18px; height: 18px; background: #8b5cf6; border-radius: 50%; cursor: pointer; }
+        .speed-buttons { display: flex; gap: 8px; justify-content: center; }
+        .speed-btn { background: #374151; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-size: 14px; cursor: pointer; transition: background 0.2s; }
+        .speed-btn.active { background: #8b5cf6; }
         .progress-bar { width: 100%; height: 8px; background: #374151; border-radius: 4px; appearance: none; cursor: pointer; outline: none; }
-        .progress-bar::-webkit-slider-thumb { appearance: none; width: 16px; height: 16px; background: #8b5cf6; border-radius: 50%; }
+        .progress-bar::-webkit-slider-thumb { appearance: none; width: 16px; height: 16px; background: #8b5cf6; border-radius: 50%; cursor: pointer; }
+        .time-display { display: flex; justify-content: space-between; color: #9ca3af; font-size: 14px; margin-top: 8px; }
         .controls { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 24px; }
-        .control-btn { background: #374151; border: none; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; color: white; }
-        .control-btn.large { width: 64px; height: 64px; background: #8b5cf6; }
-        .control-btn.small { width: 48px; height: 48px; }
-        .playlist { margin-top: 24px; max-height: 200px; overflow-y: auto; background: #16213e; border-radius: 12px; padding: 16px; color: #d1d5db; }
-        .playlist-item { padding: 8px; border-radius: 6px; cursor: pointer; }
+        .control-btn { background: #374151; border: none; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; color: white; }
+        .control-btn.small { width: 48px; height: 48px; padding: 12px; }
+        .control-btn.large { width: 64px; height: 64px; padding: 16px; background: #8b5cf6; }
+        .control-btn.active { background: #8b5cf6; }
+        .file-selector { text-align: center; }
+        .file-input { display: none; }
+        .select-btn { background: #3b82f6; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-size: 16px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
+        .playlist { margin-top: 24px; max-height: 200px; overflow-y: auto; background: #16213e; border-radius: 12px; padding: 16px; }
+        .playlist-item { padding: 8px; border-radius: 6px; cursor: pointer; color: #d1d5db; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .playlist-item.active { background: #8b5cf6; color: white; }
     </style>
 </head>
 <body>
     <div class="player-container">
-        <div class="header"><h1>Music Player</h1><p id="track-count">No tracks loaded</p></div>
+        <div class="header">
+            <h1>Music Player</h1>
+            <p id="track-count">No tracks loaded</p>
+        </div>
         <div class="track-info">
+            <div class="album-art"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg></div>
             <div class="track-title" id="track-title">No track selected</div>
-            <div id="track-number" style="color:#9ca3af; text-align:center; font-size:14px;">Track 0 of 0</div>
+            <div class="track-number" id="track-number">Track 0 of 0</div>
         </div>
         <div class="progress-container">
             <input type="range" class="progress-bar" id="progress-bar" min="0" max="100" value="0">
-            <div style="display:flex; justify-content:space-between; color:#9ca3af; font-size:14px; margin-top:8px;">
-                <span id="current-time">0:00</span><span id="duration">0:00</span>
+            <div class="time-display"><span id="current-time">0:00</span><span id="duration">0:00</span></div>
+        </div>
+        <div class="speed-control">
+            <div class="speed-label">Playback Speed: <span class="speed-value" id="speed-value">1.00x</span></div>
+            <input type="range" class="speed-slider" id="speed-slider" min="50" max="200" value="100" step="5">
+            <div class="speed-buttons">
+                <button class="speed-btn" data-speed="0.5">0.5x</button>
+                <button class="speed-btn" data-speed="1">1x</button>
+                <button class="speed-btn" data-speed="1.5">1.5x</button>
+                <button class="speed-btn" data-speed="2">2x</button>
             </div>
         </div>
         <div class="controls">
-            <button class="control-btn small" id="loop-btn">Loop</button>
-            <button class="control-btn large" id="play-pause-btn" disabled>Play/Pause</button>
-            <button class="control-btn small" id="skip-btn" disabled>+60s</button>
+            <button class="control-btn small" id="loop-btn" title="Loop mode">
+                <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>
+            </button>
+            <button class="control-btn large" id="play-pause-btn" disabled>
+                <svg id="play-icon" width="32" height="32" fill="currentColor" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                <svg id="pause-icon" width="32" height="32" fill="currentColor" viewBox="0 0 24 24" style="display: none;"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+            </button>
+            <button class="control-btn small" id="skip-btn" title="Skip forward 60s" disabled>
+                <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" y1="5" x2="19" y2="19"></line></svg>
+            </button>
         </div>
-        <input type="file" id="file-input" multiple accept="audio/*" style="display:none;">
-        <button id="select-btn" style="width:100%; padding:12px; background:#3b82f6; color:white; border:none; border-radius:8px; cursor:pointer;">Add Songs</button>
-        <div class="playlist" id="playlist-container" style="display:none;"><h3>Playlist</h3><div id="playlist"></div></div>
+        <div class="file-selector">
+            <input type="file" id="file-input" class="file-input" multiple accept="audio/*">
+            <button class="select-btn" id="select-btn">Select Music Files</button>
+        </div>
+        <div class="playlist" id="playlist-container" style="display: none;">
+            <div id="playlist"></div>
+        </div>
     </div>
-    <audio id="audio-player"></audio>
+    <audio id="audio-player" preload="auto"></audio>
 
     <script>
         const audio = document.getElementById('audio-player');
         const fileInput = document.getElementById('file-input');
         const selectBtn = document.getElementById('select-btn');
         const playPauseBtn = document.getElementById('play-pause-btn');
+        const playIcon = document.getElementById('play-icon');
+        const pauseIcon = document.getElementById('pause-icon');
         const progressBar = document.getElementById('progress-bar');
-        
+        const trackTitle = document.getElementById('track-title');
+        const playlist = document.getElementById('playlist');
+        const speedSlider = document.getElementById('speed-slider');
+        const speedValue = document.getElementById('speed-value');
+
         let audioFiles = [];
         let currentTrackIndex = 0;
+        let loopMode = 'none';
+        let playbackSpeed = 1;
 
-        // Persist songs in IndexedDB to prevent "cold" resume failures
-        const dbName = "MusicDB";
-        let db;
-        const request = indexedDB.open(dbName, 1);
-        request.onupgradeneeded = e => e.target.result.createObjectStore("songs", { keyPath: "id", autoIncrement: true });
-        request.onsuccess = e => { db = e.target.result; refreshPlaylist(); };
-
-        function refreshPlaylist() {
-            const transaction = db.transaction(["songs"], "readonly");
-            const store = transaction.objectStore("songs");
-            store.getAll().onsuccess = (e) => {
-                audioFiles = e.target.result;
-                if (audioFiles.length > 0) {
-                    document.getElementById('playlist-container').style.display = 'block';
-                    loadTrack(0, false);
-                }
-                updateUI();
-            };
-        }
-
-        function loadTrack(index, play = true) {
-            if (!audioFiles[index]) return;
-            currentTrackIndex = index;
-            if (audio.src) URL.revokeObjectURL(audio.src);
-            audio.src = URL.createObjectURL(audioFiles[index].data);
-            audio.load();
-            updateMediaSession();
-            if (play) audio.play();
-            updateUI();
-        }
-
-        // POSITION SYNC: Essential for the browser to keep the Play command "hot"
-        function syncPosition() {
+        // FIXED: Heartbeat to keep OS from killing the resume capability
+        function syncPositionState() {
             if ('mediaSession' in navigator && 'setPositionState' in navigator.mediaSession) {
-                navigator.mediaSession.setPositionState({
-                    duration: audio.duration || 0,
-                    playbackRate: audio.playbackRate || 1,
-                    position: audio.currentTime || 0
-                });
+                try {
+                    navigator.mediaSession.setPositionState({
+                        duration: isFinite(audio.duration) ? audio.duration : 0,
+                        playbackRate: audio.playbackRate || 1,
+                        position: audio.currentTime || 0
+                    });
+                } catch(e) {}
             }
         }
 
@@ -105,59 +124,112 @@
             if ('mediaSession' in navigator && audioFiles[currentTrackIndex]) {
                 navigator.mediaSession.metadata = new MediaMetadata({
                     title: audioFiles[currentTrackIndex].name,
-                    artist: 'Music Player Pro'
+                    artist: 'Web Music Player',
+                    album: 'Local Library'
                 });
-                // Standard Play/Pause
+
                 navigator.mediaSession.setActionHandler('play', () => audio.play());
                 navigator.mediaSession.setActionHandler('pause', () => audio.pause());
-                // Double Click (Next) -> Skip 60s
-                navigator.mediaSession.setActionHandler('nexttrack', () => { audio.currentTime += 60; syncPosition(); });
-                // Triple Click (Prev) -> Rewind to 0
-                navigator.mediaSession.setActionHandler('previoustrack', () => { audio.currentTime = 0; syncPosition(); });
+
+                // HEADSET: Double-click (NextTrack) -> Skip 60s
+                navigator.mediaSession.setActionHandler('nexttrack', () => {
+                    audio.currentTime = Math.min(audio.currentTime + 60, audio.duration);
+                    syncPositionState();
+                });
+
+                // HEADSET: Triple-click (PrevTrack) -> Rewind to 0
+                navigator.mediaSession.setActionHandler('previoustrack', () => {
+                    audio.currentTime = 0;
+                    syncPositionState();
+                });
+            }
+        }
+
+        function loadTrack(index, shouldPlay = false) {
+            if (!audioFiles[index]) return;
+            currentTrackIndex = index;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                audio.src = e.target.result;
+                audio.playbackRate = playbackSpeed;
+                updateUI();
+                updateMediaSession();
+                if (shouldPlay) audio.play();
+            };
+            reader.readAsDataURL(audioFiles[index]);
+        }
+
+        function updateUI() {
+            if (audioFiles.length > 0) {
+                trackTitle.textContent = audioFiles[currentTrackIndex].name;
+                document.getElementById('track-number').textContent = `Track ${currentTrackIndex + 1} of ${audioFiles.length}`;
+                document.getElementById('track-count').textContent = `${audioFiles.length} loaded`;
+                playPauseBtn.disabled = false;
+                document.getElementById('skip-btn').disabled = false;
+                document.getElementById('playlist-container').style.display = 'block';
+                playlist.innerHTML = '';
+                audioFiles.forEach((f, i) => {
+                    const item = document.createElement('div');
+                    item.className = 'playlist-item' + (i === currentTrackIndex ? ' active' : '');
+                    item.textContent = f.name;
+                    item.onclick = () => loadTrack(i, true);
+                    playlist.appendChild(item);
+                });
             }
         }
 
         selectBtn.onclick = () => fileInput.click();
         fileInput.onchange = (e) => {
-            const files = Array.from(e.target.files);
-            const transaction = db.transaction(["songs"], "readwrite");
-            const store = transaction.objectStore("songs");
-            files.forEach(f => store.add({ name: f.name, data: f }));
-            transaction.oncomplete = () => refreshPlaylist();
+            audioFiles = Array.from(e.target.files).filter(f => f.type.startsWith('audio/'));
+            if (audioFiles.length > 0) loadTrack(0);
         };
 
         playPauseBtn.onclick = () => audio.paused ? audio.play() : audio.pause();
 
         audio.onplay = () => {
+            playIcon.style.display = 'none'; pauseIcon.style.display = 'block';
             if ('mediaSession' in navigator) navigator.mediaSession.playbackState = "playing";
-            syncPosition();
+            syncPositionState();
         };
 
         audio.onpause = () => {
+            playIcon.style.display = 'block'; pauseIcon.style.display = 'none';
             if ('mediaSession' in navigator) navigator.mediaSession.playbackState = "paused";
-            syncPosition();
+            syncPositionState();
         };
 
         audio.ontimeupdate = () => {
-            progressBar.value = (audio.currentTime / audio.duration) * 100 || 0;
             document.getElementById('current-time').textContent = formatTime(audio.currentTime);
-            if (Math.floor(audio.currentTime) % 10 === 0) syncPosition();
+            progressBar.value = (audio.currentTime / audio.duration) * 100 || 0;
+            if (Math.floor(audio.currentTime) % 10 === 0) syncPositionState();
         };
 
-        function updateUI() {
-            playPauseBtn.disabled = audioFiles.length === 0;
-            document.getElementById('skip-btn').disabled = audioFiles.length === 0;
-            document.getElementById('track-title').textContent = audioFiles[currentTrackIndex]?.name || "No track selected";
-            const list = document.getElementById('playlist');
-            list.innerHTML = '';
-            audioFiles.forEach((f, i) => {
-                const item = document.createElement('div');
-                item.className = 'playlist-item' + (i === currentTrackIndex ? ' active' : '');
-                item.textContent = f.name;
-                item.onclick = () => loadTrack(i);
-                list.appendChild(item);
-            });
-        }
+        audio.onloadedmetadata = () => {
+            document.getElementById('duration').textContent = formatTime(audio.duration);
+            syncPositionState();
+        };
+
+        speedSlider.oninput = (e) => {
+            playbackSpeed = e.target.value / 100;
+            audio.playbackRate = playbackSpeed;
+            speedValue.textContent = playbackSpeed.toFixed(2) + 'x';
+            syncPositionState();
+        };
+
+        document.querySelectorAll('.speed-btn').forEach(btn => {
+            btn.onclick = () => {
+                playbackSpeed = parseFloat(btn.dataset.speed);
+                audio.playbackRate = playbackSpeed;
+                speedSlider.value = playbackSpeed * 100;
+                speedValue.textContent = playbackSpeed.toFixed(2) + 'x';
+                document.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                syncPositionState();
+            };
+        });
+
+        progressBar.oninput = (e) => { audio.currentTime = (e.target.value / 100) * audio.duration; };
+        document.getElementById('skip-btn').onclick = () => { audio.currentTime += 60; syncPositionState(); };
 
         function formatTime(s) {
             const m = Math.floor(s / 60);
