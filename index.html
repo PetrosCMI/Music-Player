@@ -160,11 +160,7 @@
             background: #8b5cf6;
         }
 
-        /* Repeat Button Styling */
-        #loop-btn {
-            opacity: 0.5;
-        }
-
+        #loop-btn { opacity: 0.5; }
         #loop-btn.active {
             opacity: 1;
             background: #8b5cf6;
@@ -179,14 +175,9 @@
             fill: white;
         }
 
-        [data-loop-mode="one"] #loop-one-badge {
-            display: block;
-        }
+        [data-loop-mode="one"] #loop-one-badge { display: block; }
 
-        .speed-control {
-            margin-bottom: 24px;
-        }
-
+        .speed-control { margin-bottom: 24px; }
         .speed-label {
             color: #9ca3af;
             font-size: 14px;
@@ -194,11 +185,7 @@
             margin-bottom: 8px;
         }
 
-        .speed-value {
-            color: #8b5cf6;
-            font-weight: 600;
-        }
-
+        .speed-value { color: #8b5cf6; font-weight: 600; }
         .speed-slider {
             width: 100%;
             height: 6px;
@@ -238,7 +225,7 @@
         }
 
         .select-btn { background: #3b82f6; }
-        .clear-btn { background: #ef4444; }
+        .clear-btn { background: #4b5563; } /* Muted grey for removal */
 
         .playlist {
             margin-top: 24px;
@@ -270,10 +257,7 @@
             border-bottom: 1px solid #1a1a2e;
         }
 
-        .playlist-item.active {
-            background: #8b5cf6;
-            color: white;
-        }
+        .playlist-item.active { background: #8b5cf6; color: white; }
 
         .playlist::-webkit-scrollbar { width: 6px; }
         .playlist::-webkit-scrollbar-thumb { background: #374151; border-radius: 10px; }
@@ -341,11 +325,11 @@
         <div class="file-actions">
             <input type="file" id="file-input" multiple accept="audio/*" style="display: none;">
             <button class="select-btn" id="select-btn">Add Songs</button>
-            <button class="clear-btn" id="clear-btn">Clear Library</button>
+            <button class="clear-btn" id="clear-btn">Clear Playlist</button>
         </div>
 
         <div class="playlist" id="playlist-container" style="display: none;">
-            <div class="playlist-header">Library</div>
+            <div class="playlist-header">Current Playlist</div>
             <div id="playlist-items"></div>
         </div>
     </div>
@@ -395,7 +379,6 @@
             }));
         }
 
-        // --- PLAYER LOGIC ---
         async function loadPlaylistFromDB() {
             const transaction = db.transaction(["songs"], "readonly");
             const store = transaction.objectStore("songs");
@@ -406,12 +389,16 @@
                 if (audioFiles.length > 0) {
                     document.getElementById('playlist-container').style.display = 'block';
                     const saved = JSON.parse(localStorage.getItem('musicPlayerState') || '{}');
-                    
                     currentTrackIndex = saved.currentTrackIndex < audioFiles.length ? saved.currentTrackIndex : 0;
-                    
-                    // Load the track and seek to last position
                     loadTrack(currentTrackIndex, false, saved.lastPosition || 0);
                     updateUI();
+                } else {
+                    document.getElementById('playlist-container').style.display = 'none';
+                    trackTitle.textContent = "No track selected";
+                    document.getElementById('track-number').textContent = "Track 0 of 0";
+                    document.getElementById('track-count').textContent = "No tracks loaded";
+                    playPauseBtn.disabled = true;
+                    document.getElementById('skip-btn').disabled = true;
                 }
             };
         }
@@ -426,7 +413,6 @@
             audio.playbackRate = playbackSpeed;
             trackTitle.textContent = fileObj.name;
             
-            // Wait for metadata to load before seeking
             audio.onloadedmetadata = () => {
                 if (seekTo > 0) audio.currentTime = seekTo;
                 updateUI();
@@ -440,7 +426,7 @@
         }
 
         function updateUI() {
-            document.getElementById('track-count').textContent = `${audioFiles.length} tracks loaded`;
+            document.getElementById('track-count').textContent = `${audioFiles.length} tracks in playlist`;
             document.getElementById('track-number').textContent = `Track ${currentTrackIndex + 1} of ${audioFiles.length}`;
             playPauseBtn.disabled = audioFiles.length === 0;
             document.getElementById('skip-btn').disabled = audioFiles.length === 0;
@@ -455,7 +441,6 @@
             });
         }
 
-        // --- EVENTS ---
         selectBtn.onclick = () => fileInput.click();
         fileInput.onchange = (e) => {
             const files = Array.from(e.target.files);
@@ -466,12 +451,14 @@
         };
 
         clearBtn.onclick = () => {
-            if (confirm("Permanently delete all songs from library?")) {
+            if (confirm("Remove all songs from this player's playlist? (Your original files on your computer will not be touched).")) {
                 const transaction = db.transaction(["songs"], "readwrite");
                 transaction.objectStore("songs").clear();
                 transaction.oncomplete = () => {
                     localStorage.removeItem('musicPlayerState');
-                    location.reload();
+                    audio.pause();
+                    audio.src = "";
+                    loadPlaylistFromDB();
                 };
             }
         };
@@ -516,8 +503,6 @@
             document.getElementById('current-time').textContent = formatTime(cur);
             document.getElementById('duration').textContent = formatTime(dur);
             progressBar.value = (cur / dur) * 100;
-            
-            // Save position every second
             if (Math.floor(cur) % 2 === 0) saveState(cur);
         };
 
