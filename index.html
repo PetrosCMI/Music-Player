@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Music Player Pro</title>
     <style>
-        /* Styles remain the same as your provided file */
+        /* Styles preserved from previous version */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
@@ -124,7 +124,7 @@
         let loopMode = 'none';
         let playbackSpeed = 1;
 
-        // --- PERSISTENT STORAGE (IndexedDB) ---
+        // DB SETUP
         const dbName = "MusicPlayerDB";
         let db;
         const dbRequest = indexedDB.open(dbName, 1);
@@ -167,6 +167,7 @@
             audio.onloadedmetadata = () => {
                 if (seekTo > 0) audio.currentTime = seekTo;
                 updateMediaSession();
+                syncPositionState();
                 updateUI();
             };
             if (shouldPlay) audio.play();
@@ -188,22 +189,40 @@
             });
         }
 
+        // POSITION SYNC (Crucial for Display Toggle Fix)
+        function syncPositionState() {
+            if ('mediaSession' in navigator && 'setPositionState' in navigator.mediaSession) {
+                navigator.mediaSession.setPositionState({
+                    duration: audio.duration || 0,
+                    playbackRate: audio.playbackRate || 1,
+                    position: audio.currentTime || 0
+                });
+            }
+        }
+
         function updateMediaSession() {
             if ('mediaSession' in navigator && audioFiles[currentTrackIndex]) {
                 navigator.mediaSession.metadata = new MediaMetadata({
                     title: audioFiles[currentTrackIndex].name,
                     artist: 'Web Music Player'
                 });
+                
                 navigator.mediaSession.setActionHandler('play', () => audio.play());
                 navigator.mediaSession.setActionHandler('pause', () => audio.pause());
                 navigator.mediaSession.setActionHandler('nexttrack', () => skipForward());
+                
+                // Triple click / Previous button handler
                 navigator.mediaSession.setActionHandler('previoustrack', () => {
-                    audio.currentTime = Math.max(audio.currentTime - 60, 0);
+                    audio.currentTime = 0; // Rewind to beginning
+                    syncPositionState();
                 });
             }
         }
 
-        function skipForward() { audio.currentTime = Math.min(audio.currentTime + 60, audio.duration); }
+        function skipForward() { 
+            audio.currentTime = Math.min(audio.currentTime + 60, audio.duration); 
+            syncPositionState();
+        }
 
         selectBtn.onclick = () => fileInput.click();
         fileInput.onchange = (e) => {
@@ -228,13 +247,22 @@
             document.getElementById('play-icon').style.display = 'none';
             document.getElementById('pause-icon').style.display = 'block';
             if ('mediaSession' in navigator) navigator.mediaSession.playbackState = "playing";
+            syncPositionState();
         };
 
         audio.onpause = () => {
             document.getElementById('play-icon').style.display = 'block';
             document.getElementById('pause-icon').style.display = 'none';
             if ('mediaSession' in navigator) navigator.mediaSession.playbackState = "paused";
+            syncPositionState();
         };
+
+        // Handle browser tab/screen visibility refresh
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                syncPositionState(); // Re-sync hardware when screen comes back
+            }
+        });
 
         loopBtn.onclick = () => {
             const modes = ['none', 'all', 'one'];
@@ -244,22 +272,30 @@
         };
 
         audio.ontimeupdate = () => {
-            if (isSeeking) return;
             const cur = audio.currentTime || 0;
             const dur = audio.duration || 1;
             document.getElementById('current-time').textContent = formatTime(cur);
             document.getElementById('duration').textContent = formatTime(dur);
             progressBar.value = (cur / dur) * 100;
-            if (Math.floor(cur) % 5 === 0) saveState(cur);
+            if (Math.floor(cur) % 5 === 0) {
+                saveState(cur);
+                syncPositionState(); // Keep hardware clock in sync
+            }
         };
 
-        progressBar.oninput = (e) => { audio.currentTime = (e.target.value / 100) * audio.duration; };
+        progressBar.oninput = (e) => { 
+            audio.currentTime = (e.target.value / 100) * audio.duration;
+            syncPositionState();
+        };
+
         speedSlider.oninput = (e) => {
             playbackSpeed = e.target.value / 100;
             audio.playbackRate = playbackSpeed;
             document.getElementById('speed-value').textContent = playbackSpeed.toFixed(2) + 'x';
             saveState(audio.currentTime);
+            syncPositionState();
         };
+        
         document.getElementById('skip-btn').onclick = skipForward;
 
         audio.onended = () => {
