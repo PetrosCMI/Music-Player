@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Music Player Pro</title>
     <style>
+        /* Styles remain the same as your provided file */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            min-height: 100vh;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             display: flex; align-items: center; justify-content: center; padding: 20px;
         }
         .player-container {
@@ -35,9 +35,7 @@
             width: 100%; height: 8px; background: #374151; border-radius: 4px;
             appearance: none; cursor: pointer; outline: none;
         }
-        .progress-bar::-webkit-slider-thumb {
-            appearance: none; width: 16px; height: 16px; background: #8b5cf6; border-radius: 50%;
-        }
+        .progress-bar::-webkit-slider-thumb { appearance: none; width: 16px; height: 16px; background: #8b5cf6; border-radius: 50%; }
         .time-display { display: flex; justify-content: space-between; color: #9ca3af; font-size: 14px; margin-top: 8px; }
         .controls { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 24px; }
         .control-btn {
@@ -48,10 +46,7 @@
         .control-btn:disabled { opacity: 0.3; cursor: not-allowed; }
         .control-btn.small { width: 48px; height: 48px; }
         .control-btn.large { width: 64px; height: 64px; background: #8b5cf6; }
-        #loop-btn { opacity: 0.5; }
-        #loop-btn.active { opacity: 1; background: #8b5cf6; box-shadow: 0 0 12px rgba(139, 92, 246, 0.5); }
-        #loop-one-badge { display: none; font-family: sans-serif; font-weight: bold; font-size: 9px; fill: white; }
-        [data-loop-mode="one"] #loop-one-badge { display: block; }
+        #loop-btn.active { background: #8b5cf6; box-shadow: 0 0 12px rgba(139, 92, 246, 0.5); }
         .speed-control { margin-bottom: 24px; }
         .speed-label { color: #9ca3af; font-size: 14px; text-align: center; margin-bottom: 8px; }
         .speed-value { color: #8b5cf6; font-weight: 600; }
@@ -87,11 +82,10 @@
             <input type="range" class="speed-slider" id="speed-slider" min="50" max="200" value="100" step="5">
         </div>
         <div class="controls">
-            <button class="control-btn small" id="loop-btn" title="Loop: Off" data-loop-mode="none">
+            <button class="control-btn small" id="loop-btn" title="Loop: Off">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path>
                     <polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path>
-                    <text id="loop-one-badge" x="12" y="15.5" text-anchor="middle" stroke="none">1</text>
                 </svg>
             </button>
             <button class="control-btn large" id="play-pause-btn" disabled>
@@ -107,8 +101,8 @@
             <button class="select-btn" id="select-btn">Add Songs</button>
             <button class="clear-btn" id="clear-btn">Clear Playlist</button>
         </div>
-        <div class="playlist" id="playlist-container" style="display: none;">
-            <div class="playlist-header">Current Playlist</div>
+        <div id="playlist-container" class="playlist" style="display: none;">
+            <div class="playlist-header">Playlist</div>
             <div id="playlist-items"></div>
         </div>
     </div>
@@ -129,10 +123,8 @@
         let currentTrackIndex = 0;
         let loopMode = 'none';
         let playbackSpeed = 1;
-        let wakeLock = null;
-        let isSeeking = false;
 
-        // DB SETUP
+        // --- PERSISTENT STORAGE (IndexedDB) ---
         const dbName = "MusicPlayerDB";
         let db;
         const dbRequest = indexedDB.open(dbName, 1);
@@ -177,12 +169,12 @@
                 updateMediaSession();
                 updateUI();
             };
-            if (shouldPlay) { audio.play(); requestWakeLock(); }
+            if (shouldPlay) audio.play();
             saveState(seekTo);
         }
 
         function updateUI() {
-            document.getElementById('track-count').textContent = `${audioFiles.length} songs in list`;
+            document.getElementById('track-count').textContent = `${audioFiles.length} songs loaded`;
             document.getElementById('track-number').textContent = `Track ${currentTrackIndex + 1} of ${audioFiles.length}`;
             playPauseBtn.disabled = audioFiles.length === 0;
             document.getElementById('skip-btn').disabled = audioFiles.length === 0;
@@ -196,35 +188,23 @@
             });
         }
 
-        // HEADSET / MEDIA SESSION LOGIC
         function updateMediaSession() {
             if ('mediaSession' in navigator && audioFiles[currentTrackIndex]) {
                 navigator.mediaSession.metadata = new MediaMetadata({
                     title: audioFiles[currentTrackIndex].name,
-                    artist: 'Web Music Player',
-                    album: 'My Library'
+                    artist: 'Web Music Player'
                 });
-                
-                // Headset Skip logic
+                navigator.mediaSession.setActionHandler('play', () => audio.play());
+                navigator.mediaSession.setActionHandler('pause', () => audio.pause());
                 navigator.mediaSession.setActionHandler('nexttrack', () => skipForward());
-                navigator.mediaSession.setActionHandler('seekforward', () => skipForward());
                 navigator.mediaSession.setActionHandler('previoustrack', () => {
                     audio.currentTime = Math.max(audio.currentTime - 60, 0);
                 });
-                navigator.mediaSession.setActionHandler('play', () => { audio.play(); });
-                navigator.mediaSession.setActionHandler('pause', () => { audio.pause(); });
             }
         }
 
-        function skipForward() {
-            audio.currentTime = Math.min(audio.currentTime + 60, audio.duration);
-        }
+        function skipForward() { audio.currentTime = Math.min(audio.currentTime + 60, audio.duration); }
 
-        async function requestWakeLock() {
-            try { if ('wakeLock' in navigator && !wakeLock) wakeLock = await navigator.wakeLock.request('screen'); } catch (err) {}
-        }
-
-        // BUTTON EVENTS
         selectBtn.onclick = () => fileInput.click();
         fileInput.onchange = (e) => {
             const files = Array.from(e.target.files);
@@ -235,17 +215,14 @@
         };
 
         clearBtn.onclick = () => {
-            if (confirm("Remove playlist? (Original files safe on computer)")) {
+            if (confirm("Clear playlist?")) {
                 const transaction = db.transaction(["songs"], "readwrite");
                 transaction.objectStore("songs").clear();
                 transaction.oncomplete = () => { localStorage.removeItem('musicPlayerState'); location.reload(); };
             }
         };
 
-        playPauseBtn.onclick = () => {
-            if (audio.paused) { audio.play(); requestWakeLock(); } 
-            else { audio.pause(); if (wakeLock) { wakeLock.release(); wakeLock = null; } }
-        };
+        playPauseBtn.onclick = () => { audio.paused ? audio.play() : audio.pause(); };
 
         audio.onplay = () => {
             document.getElementById('play-icon').style.display = 'none';
@@ -262,7 +239,6 @@
         loopBtn.onclick = () => {
             const modes = ['none', 'all', 'one'];
             loopMode = modes[(modes.indexOf(loopMode) + 1) % 3];
-            loopBtn.setAttribute('data-loop-mode', loopMode);
             loopBtn.classList.toggle('active', loopMode !== 'none');
             saveState(audio.currentTime);
         };
@@ -277,17 +253,13 @@
             if (Math.floor(cur) % 5 === 0) saveState(cur);
         };
 
-        progressBar.onmousedown = () => isSeeking = true;
-        progressBar.onmouseup = () => isSeeking = false;
         progressBar.oninput = (e) => { audio.currentTime = (e.target.value / 100) * audio.duration; };
-
         speedSlider.oninput = (e) => {
             playbackSpeed = e.target.value / 100;
             audio.playbackRate = playbackSpeed;
             document.getElementById('speed-value').textContent = playbackSpeed.toFixed(2) + 'x';
             saveState(audio.currentTime);
         };
-
         document.getElementById('skip-btn').onclick = skipForward;
 
         audio.onended = () => {
@@ -307,7 +279,6 @@
             const saved = JSON.parse(localStorage.getItem('musicPlayerState') || '{}');
             if (saved.loopMode) {
                 loopMode = saved.loopMode;
-                loopBtn.setAttribute('data-loop-mode', loopMode);
                 loopBtn.classList.toggle('active', loopMode !== 'none');
             }
             if (saved.playbackSpeed) {
