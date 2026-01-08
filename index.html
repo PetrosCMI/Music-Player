@@ -234,8 +234,10 @@
                 navigator.mediaSession.setActionHandler('play', togglePlayPause);
                 navigator.mediaSession.setActionHandler('pause', togglePlayPause);
                 navigator.mediaSession.setActionHandler('seekforward', () => skipForward(60));
+                navigator.mediaSession.setActionHandler('seekbackward', () => skipForward(-10));
                 navigator.mediaSession.setActionHandler('previoustrack', previousTrack);
-                navigator.mediaSession.setActionHandler('nexttrack', nextTrack);
+                // Map nexttrack to skip forward instead of next track
+                navigator.mediaSession.setActionHandler('nexttrack', () => skipForward(60));
 
                 if (audio.duration > 0) {
                     navigator.mediaSession.setPositionState({
@@ -288,9 +290,11 @@
                     if ('mediaSession' in navigator) {
                         navigator.mediaSession.playbackState = 'playing';
                     }
+                    updatePlayPauseButton();
                 }).catch(err => {
                     console.log('Play error:', err);
                     isPlaying = false;
+                    updatePlayPauseButton();
                 });
             }
             updatePlayPauseButton();
@@ -436,11 +440,29 @@
             if (audio.duration > 0) {
                 progressFill.style.width = `${(audio.currentTime / audio.duration) * 100}%`;
             }
+            // Keep media session updated
+            updateMediaSession();
         });
 
         audio.addEventListener('loadedmetadata', () => {
             durationEl.textContent = formatTime(audio.duration);
             updateMediaSession();
+        });
+
+        audio.addEventListener('play', () => {
+            isPlaying = true;
+            updatePlayPauseButton();
+            if ('mediaSession' in navigator) {
+                navigator.mediaSession.playbackState = 'playing';
+            }
+        });
+
+        audio.addEventListener('pause', () => {
+            isPlaying = false;
+            updatePlayPauseButton();
+            if ('mediaSession' in navigator) {
+                navigator.mediaSession.playbackState = 'paused';
+            }
         });
 
         audio.addEventListener('ended', () => {
