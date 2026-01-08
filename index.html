@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Music Player Pro</title>
     <style>
-        /* Styles preserved from previous version */
+        /* Styles remain identical to maintain your UI */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
@@ -123,8 +123,8 @@
         let currentTrackIndex = 0;
         let loopMode = 'none';
         let playbackSpeed = 1;
+        let isSeeking = false;
 
-        // DB SETUP
         const dbName = "MusicPlayerDB";
         let db;
         const dbRequest = indexedDB.open(dbName, 1);
@@ -189,14 +189,15 @@
             });
         }
 
-        // POSITION SYNC (Crucial for Display Toggle Fix)
         function syncPositionState() {
             if ('mediaSession' in navigator && 'setPositionState' in navigator.mediaSession) {
-                navigator.mediaSession.setPositionState({
-                    duration: audio.duration || 0,
-                    playbackRate: audio.playbackRate || 1,
-                    position: audio.currentTime || 0
-                });
+                try {
+                    navigator.mediaSession.setPositionState({
+                        duration: isFinite(audio.duration) ? audio.duration : 0,
+                        playbackRate: audio.playbackRate || 1,
+                        position: audio.currentTime || 0
+                    });
+                } catch(e) {}
             }
         }
 
@@ -204,16 +205,29 @@
             if ('mediaSession' in navigator && audioFiles[currentTrackIndex]) {
                 navigator.mediaSession.metadata = new MediaMetadata({
                     title: audioFiles[currentTrackIndex].name,
-                    artist: 'Web Music Player'
+                    artist: 'Web Music Player',
+                    album: 'Playlist'
                 });
                 
+                // --- HEADSET LOGIC ---
+                // DOUBLE CLICK = Next Track Action
+                navigator.mediaSession.setActionHandler('nexttrack', () => {
+                    skipForward();
+                });
+                
+                // TRIPLE CLICK = Previous Track Action
+                navigator.mediaSession.setActionHandler('previoustrack', () => {
+                    audio.currentTime = 0; // Rewind current track
+                    syncPositionState();
+                });
+
+                // Standard controls
                 navigator.mediaSession.setActionHandler('play', () => audio.play());
                 navigator.mediaSession.setActionHandler('pause', () => audio.pause());
-                navigator.mediaSession.setActionHandler('nexttrack', () => skipForward());
                 
-                // Triple click / Previous button handler
-                navigator.mediaSession.setActionHandler('previoustrack', () => {
-                    audio.currentTime = 0; // Rewind to beginning
+                // Allow OS seek bars to work
+                navigator.mediaSession.setActionHandler('seekto', (details) => {
+                    if (details.seekTime) audio.currentTime = details.seekTime;
                     syncPositionState();
                 });
             }
@@ -257,11 +271,8 @@
             syncPositionState();
         };
 
-        // Handle browser tab/screen visibility refresh
         document.addEventListener('visibilitychange', () => {
-            if (document.visibilityState === 'visible') {
-                syncPositionState(); // Re-sync hardware when screen comes back
-            }
+            if (document.visibilityState === 'visible') syncPositionState();
         });
 
         loopBtn.onclick = () => {
@@ -272,6 +283,7 @@
         };
 
         audio.ontimeupdate = () => {
+            if (isSeeking) return;
             const cur = audio.currentTime || 0;
             const dur = audio.duration || 1;
             document.getElementById('current-time').textContent = formatTime(cur);
@@ -279,10 +291,12 @@
             progressBar.value = (cur / dur) * 100;
             if (Math.floor(cur) % 5 === 0) {
                 saveState(cur);
-                syncPositionState(); // Keep hardware clock in sync
+                syncPositionState();
             }
         };
 
+        progressBar.onmousedown = () => isSeeking = true;
+        progressBar.onmouseup = () => isSeeking = false;
         progressBar.oninput = (e) => { 
             audio.currentTime = (e.target.value / 100) * audio.duration;
             syncPositionState();
