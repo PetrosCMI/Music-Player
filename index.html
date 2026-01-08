@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Music Player</title>
     <style>
-        /* Restoring your original "Fine" Styles */
+        /* Restoring original preferred styles */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; padding: 20px; }
         .player-container { background: #1a1a2e; border-radius: 24px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5); padding: 32px; width: 100%; max-width: 450px; }
@@ -34,9 +34,10 @@
         .control-btn.small { width: 48px; height: 48px; padding: 12px; }
         .control-btn.large { width: 64px; height: 64px; padding: 16px; background: #8b5cf6; }
         .control-btn.active { background: #8b5cf6; }
-        .file-selector { text-align: center; }
-        .file-input { display: none; }
-        .select-btn { background: #3b82f6; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-size: 16px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
+        .file-actions { display: flex; gap: 10px; justify-content: center; }
+        .select-btn, .clear-btn { border: none; padding: 12px 20px; border-radius: 8px; font-size: 14px; cursor: pointer; color: white; transition: background 0.2s; }
+        .select-btn { background: #3b82f6; }
+        .clear-btn { background: #ef4444; }
         .playlist { margin-top: 24px; max-height: 200px; overflow-y: auto; background: #16213e; border-radius: 12px; padding: 16px; }
         .playlist-item { padding: 8px; border-radius: 6px; cursor: pointer; color: #d1d5db; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .playlist-item.active { background: #8b5cf6; color: white; }
@@ -44,10 +45,7 @@
 </head>
 <body>
     <div class="player-container">
-        <div class="header">
-            <h1>Music Player</h1>
-            <p id="track-count">No tracks loaded</p>
-        </div>
+        <div class="header"><h1>Music Player</h1><p id="track-count">No tracks loaded</p></div>
         <div class="track-info">
             <div class="album-art"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg></div>
             <div class="track-title" id="track-title">No track selected</div>
@@ -61,38 +59,35 @@
             <div class="speed-label">Playback Speed: <span class="speed-value" id="speed-value">1.00x</span></div>
             <input type="range" class="speed-slider" id="speed-slider" min="50" max="200" value="100" step="5">
             <div class="speed-buttons">
-                <button class="speed-btn" data-speed="0.5">0.5x</button>
-                <button class="speed-btn" data-speed="1">1x</button>
-                <button class="speed-btn" data-speed="1.5">1.5x</button>
-                <button class="speed-btn" data-speed="2">2x</button>
+                <button class="speed-btn" data-speed="0.5">0.5x</button><button class="speed-btn" data-speed="1">1x</button><button class="speed-btn" data-speed="1.5">1.5x</button><button class="speed-btn" data-speed="2">2x</button>
             </div>
         </div>
         <div class="controls">
-            <button class="control-btn small" id="loop-btn" title="Loop mode">
+            <button class="control-btn small" id="loop-btn" title="Loop: Off">
                 <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>
             </button>
             <button class="control-btn large" id="play-pause-btn" disabled>
                 <svg id="play-icon" width="32" height="32" fill="currentColor" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
                 <svg id="pause-icon" width="32" height="32" fill="currentColor" viewBox="0 0 24 24" style="display: none;"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
             </button>
-            <button class="control-btn small" id="skip-btn" title="Skip forward 60s" disabled>
+            <button class="control-btn small" id="skip-btn" title="Skip +60s" disabled>
                 <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" y1="5" x2="19" y2="19"></line></svg>
             </button>
         </div>
-        <div class="file-selector">
-            <input type="file" id="file-input" class="file-input" multiple accept="audio/*">
-            <button class="select-btn" id="select-btn">Select Music Files</button>
+        <div class="file-actions">
+            <input type="file" id="file-input" multiple accept="audio/*" style="display:none">
+            <button class="select-btn" id="select-btn">Add Songs</button>
+            <button class="clear-btn" id="clear-btn">Clear Library</button>
         </div>
-        <div class="playlist" id="playlist-container" style="display: none;">
-            <div id="playlist"></div>
-        </div>
+        <div class="playlist" id="playlist-container" style="display: none;"><div id="playlist"></div></div>
     </div>
-    <audio id="audio-player" preload="auto"></audio>
+    <audio id="audio-player"></audio>
 
     <script>
         const audio = document.getElementById('audio-player');
         const fileInput = document.getElementById('file-input');
         const selectBtn = document.getElementById('select-btn');
+        const clearBtn = document.getElementById('clear-btn');
         const playPauseBtn = document.getElementById('play-pause-btn');
         const playIcon = document.getElementById('play-icon');
         const pauseIcon = document.getElementById('pause-icon');
@@ -101,13 +96,14 @@
         const playlist = document.getElementById('playlist');
         const speedSlider = document.getElementById('speed-slider');
         const speedValue = document.getElementById('speed-value');
+        const loopBtn = document.getElementById('loop-btn');
 
         let audioFiles = [];
         let currentTrackIndex = 0;
-        let loopMode = 'none';
+        let loopMode = 'none'; // 'none', 'all', 'one'
         let playbackSpeed = 1;
 
-        // FIXED: Heartbeat to keep OS from killing the resume capability
+        // POSITION SYNC (Crucial for Resume/Screen Toggle fix)
         function syncPositionState() {
             if ('mediaSession' in navigator && 'setPositionState' in navigator.mediaSession) {
                 try {
@@ -130,14 +126,14 @@
 
                 navigator.mediaSession.setActionHandler('play', () => audio.play());
                 navigator.mediaSession.setActionHandler('pause', () => audio.pause());
-
-                // HEADSET: Double-click (NextTrack) -> Skip 60s
+                
+                // Double Click headset -> Skip 60s
                 navigator.mediaSession.setActionHandler('nexttrack', () => {
                     audio.currentTime = Math.min(audio.currentTime + 60, audio.duration);
                     syncPositionState();
                 });
 
-                // HEADSET: Triple-click (PrevTrack) -> Rewind to 0
+                // Triple Click headset -> Rewind to 0
                 navigator.mediaSession.setActionHandler('previoustrack', () => {
                     audio.currentTime = 0;
                     syncPositionState();
@@ -160,28 +156,39 @@
         }
 
         function updateUI() {
-            if (audioFiles.length > 0) {
-                trackTitle.textContent = audioFiles[currentTrackIndex].name;
-                document.getElementById('track-number').textContent = `Track ${currentTrackIndex + 1} of ${audioFiles.length}`;
-                document.getElementById('track-count').textContent = `${audioFiles.length} loaded`;
-                playPauseBtn.disabled = false;
-                document.getElementById('skip-btn').disabled = false;
-                document.getElementById('playlist-container').style.display = 'block';
-                playlist.innerHTML = '';
-                audioFiles.forEach((f, i) => {
-                    const item = document.createElement('div');
-                    item.className = 'playlist-item' + (i === currentTrackIndex ? ' active' : '');
-                    item.textContent = f.name;
-                    item.onclick = () => loadTrack(i, true);
-                    playlist.appendChild(item);
-                });
-            }
+            const count = audioFiles.length;
+            document.getElementById('track-count').textContent = count > 0 ? `${count} tracks loaded` : 'No tracks loaded';
+            trackTitle.textContent = audioFiles[currentTrackIndex]?.name || 'No track selected';
+            document.getElementById('track-number').textContent = count > 0 ? `Track ${currentTrackIndex + 1} of ${count}` : 'Track 0 of 0';
+            playPauseBtn.disabled = count === 0;
+            document.getElementById('skip-btn').disabled = count === 0;
+            document.getElementById('playlist-container').style.display = count > 0 ? 'block' : 'none';
+            
+            playlist.innerHTML = '';
+            audioFiles.forEach((f, i) => {
+                const item = document.createElement('div');
+                item.className = 'playlist-item' + (i === currentTrackIndex ? ' active' : '');
+                item.textContent = f.name;
+                item.onclick = () => loadTrack(i, true);
+                playlist.appendChild(item);
+            });
         }
 
         selectBtn.onclick = () => fileInput.click();
         fileInput.onchange = (e) => {
-            audioFiles = Array.from(e.target.files).filter(f => f.type.startsWith('audio/'));
-            if (audioFiles.length > 0) loadTrack(0);
+            const newFiles = Array.from(e.target.files).filter(f => f.type.startsWith('audio/'));
+            if (newFiles.length > 0) {
+                audioFiles = [...audioFiles, ...newFiles];
+                if (!audio.src) loadTrack(0);
+                else updateUI();
+            }
+        };
+
+        clearBtn.onclick = () => {
+            audioFiles = [];
+            audio.src = '';
+            currentTrackIndex = 0;
+            updateUI();
         };
 
         playPauseBtn.onclick = () => audio.paused ? audio.play() : audio.pause();
@@ -209,11 +216,27 @@
             syncPositionState();
         };
 
+        // LOOP LOGIC FIXED
+        loopBtn.onclick = () => {
+            const modes = ['none', 'all', 'one'];
+            loopMode = modes[(modes.indexOf(loopMode) + 1) % modes.length];
+            loopBtn.classList.toggle('active', loopMode !== 'none');
+            loopBtn.title = `Loop: ${loopMode.charAt(0).toUpperCase() + loopMode.slice(1)}`;
+        };
+
+        audio.onended = () => {
+            if (loopMode === 'one') {
+                audio.currentTime = 0;
+                audio.play();
+            } else if (loopMode === 'all' || currentTrackIndex < audioFiles.length - 1) {
+                loadTrack((currentTrackIndex + 1) % audioFiles.length, true);
+            }
+        };
+
         speedSlider.oninput = (e) => {
             playbackSpeed = e.target.value / 100;
             audio.playbackRate = playbackSpeed;
             speedValue.textContent = playbackSpeed.toFixed(2) + 'x';
-            syncPositionState();
         };
 
         document.querySelectorAll('.speed-btn').forEach(btn => {
@@ -224,7 +247,6 @@
                 speedValue.textContent = playbackSpeed.toFixed(2) + 'x';
                 document.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
-                syncPositionState();
             };
         });
 
@@ -236,6 +258,11 @@
             const sec = Math.floor(s % 60);
             return `${m}:${sec.toString().padStart(2, '0')}`;
         }
+
+        // Refresh hardware sync when user returns to tab
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') syncPositionState();
+        });
     </script>
 </body>
 </html>
