@@ -3,181 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Audio Player v1.9</title>
+    <title>Local Player v3.0</title>
     <style>
-        :root {
-            --accent: #ffffff;
-            --bg: #000000;
-            --item-bg: #1a1a1a;
-            --text: #ffffff;
-            --radius: 50px;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            height: 100vh;
-            overflow: hidden;
-        }
-
-        .player-container {
-            width: 100%;
-            max-width: 600px;
-            display: flex;
-            flex-direction: column;
-            padding: 10px;
-            box-sizing: border-box;
-        }
-
-        .header { text-align: center; padding: 2px 0; }
+        :root { --accent: #ffffff; --bg: #000000; --item-bg: #1a1a1a; --text: #ffffff; --radius: 50px; }
+        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); color: var(--text); margin: 0; height: 100vh; overflow: hidden; display: flex; justify-content: center; }
+        .player-container { width: 100%; max-width: 600px; display: flex; flex-direction: column; padding: 10px; box-sizing: border-box; }
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 5px; }
         .version { font-size: 0.7rem; opacity: 0.4; }
-
-        /* Track Info */
-        .now-playing { text-align: center; padding: 5px 0; }
-        #trackName { 
-            font-size: 2.2rem; 
-            font-weight: 800; 
-            margin: 0;
-            line-height: 1.1;
-            word-break: break-word;
-        }
-
-        /* Progress Bar */
-        .progress-box { padding: 5px 0; }
-        #seekSlider { width: 100%; accent-color: var(--accent); height: 12px; margin: 0; }
-        .time-info { 
-            display: flex; 
-            justify-content: space-between; 
-            font-size: 1.2rem; 
-            font-family: monospace;
-            margin-top: 2px;
-        }
-
-        /* Main Playback Controls */
-        .controls-main { 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-        
-        .btn-round {
-            background: var(--item-bg);
-            border: 2px solid #333;
-            color: white;
-            padding: 10px 20px;
-            font-size: 1.8rem;
-            border-radius: var(--radius);
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .play-pause-btn { 
-            background: var(--accent); 
-            color: var(--bg);
-            padding: 12px 35px;
-            font-size: 2.2rem;
-            border: none;
-        }
-
-        /* Speed Section (Centered Strip) */
-        .speed-section {
-            background: #111;
-            border: 2px solid #333;
-            border-radius: 25px;
-            padding: 10px;
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        #speedSlider { flex-grow: 1; accent-color: var(--accent); height: 8px; }
-        .speed-val-box { font-size: 1.3rem; font-weight: bold; min-width: 55px; text-align: center; }
-        .speed-adj-btn { 
-            background: var(--accent); 
-            color: var(--bg); 
-            border: none; 
-            padding: 5px 15px; 
-            font-size: 1.2rem; 
-            font-weight: bold;
-            border-radius: 15px;
-        }
-
-        /* Management Buttons (Add/Clear/Loop) */
-        .mgmt-row { 
-            display: flex;
-            justify-content: center;
-            gap: 6px; 
-            margin-bottom: 10px;
-        }
-        .action-btn { 
-            background: var(--item-bg); 
-            padding: 12px 18px; 
-            border-radius: var(--radius);
-            font-weight: bold; 
-            font-size: 1.1rem; 
-            border: 2px solid #333;
-            color: white;
-            flex: 1;
-        }
-        .btn-loop.active { background: var(--accent); color: var(--bg); border-color: var(--accent); }
-
-        /* Playlist */
-        .playlist { 
-            flex-grow: 1;
-            overflow-y: auto; 
-            background: #050505;
-            border-radius: 15px;
-            border: 2px solid #222;
-        }
-        .track-item { 
-            padding: 15px; 
-            font-size: 1.5rem;
-            border-bottom: 1px solid #1a1a1a;
-            cursor: pointer;
-        }
+        .now-playing { text-align: center; padding: 10px 0; min-height: 80px; display: flex; align-items: center; justify-content: center; }
+        #trackName { font-size: 1.6rem; font-weight: 800; margin: 0; line-height: 1.2; }
+        .speed-stepper { display: flex; justify-content: center; align-items: center; gap: 15px; margin-bottom: 8px; }
+        .step-btn { background: #1a1a1a; border: 1px solid #333; color: white; width: 35px; height: 35px; border-radius: 50%; cursor: pointer; }
+        #speedDisplay { font-family: monospace; font-size: 1.1rem; min-width: 60px; text-align: center; color: var(--accent); }
+        #seekSlider { width: 100%; accent-color: var(--accent); cursor: pointer; }
+        .time-info { display: flex; justify-content: space-between; font-size: 0.9rem; font-family: monospace; }
+        .controls-main { display: flex; justify-content: center; align-items: center; gap: 15px; margin: 10px 0; }
+        .btn-round { background: var(--item-bg); border: 1px solid #333; color: white; padding: 10px 20px; font-size: 1.4rem; border-radius: var(--radius); cursor: pointer; }
+        .play-pause-btn { background: var(--accent); color: var(--bg); padding: 12px 40px; border: none; font-size: 1.8rem; }
+        .mgmt-row { display: flex; gap: 5px; margin-bottom: 10px; }
+        .action-btn { background: var(--item-bg); padding: 10px; border-radius: 10px; border: 1px solid #333; color: white; flex: 1; cursor: pointer; font-weight: bold; }
+        .playlist { flex-grow: 1; overflow-y: auto; background: #050505; border-radius: 12px; border: 1px solid #222; }
+        .track-item { padding: 12px 15px; font-size: 1.1rem; border-bottom: 1px solid #111; cursor: pointer; }
         .track-item.active { background: var(--accent); color: var(--bg); font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div class="player-container">
-    <div class="header"><div class="version">AUDIO PLAYER v1.9</div></div>
+    <div class="header"><div class="version">v3.0 LOCAL PRO</div></div>
+    <div class="now-playing"><p id="trackName">READY</p></div>
 
-    <div class="now-playing"><p id="trackName">NO TRACK</p></div>
+    <div class="speed-stepper">
+        <button class="step-btn" onclick="adjustSpeed(-0.1)">-</button>
+        <div id="speedDisplay">1.0x</div>
+        <button class="step-btn" onclick="adjustSpeed(0.1)">+</button>
+    </div>
 
     <div class="progress-box">
         <input type="range" id="seekSlider" value="0" min="0" step="0.1">
-        <div class="time-info">
-            <span id="curTime">0:00</span>
-            <span id="durTime">0:00</span>
-        </div>
+        <div class="time-info"><span id="curTime">0:00</span><span id="durTime">0:00</span></div>
     </div>
 
     <div class="controls-main">
-        <button class="btn-round" onclick="prevTrack()" title="Previous Song">⏮</button>
+        <button class="btn-round" onclick="prevTrack()">⏮</button>
         <button class="btn-round play-pause-btn" id="playBtn" onclick="togglePlay()">▶</button>
-        <button class="btn-round" onclick="nextTrack()" title="Next Song">⏭</button>
-    </div>
-
-    <div class="speed-section">
-        <button class="speed-adj-btn" onclick="adjSpeed(-0.1)">-</button>
-        <input type="range" id="speedSlider" min="0.5" max="2.5" step="0.1" value="1.0">
-        <button class="speed-adj-btn" onclick="adjSpeed(0.1)">+</button>
-        <div class="speed-val-box"><span id="speedVal">1.0</span>x</div>
+        <button class="btn-round" onclick="nextTrack()">⏭</button>
     </div>
 
     <div class="mgmt-row">
-        <button class="action-btn" onclick="addTracks()">+ ADD</button>
-        <button class="action-btn" onclick="clearAll()">CLEAR</button>
-        <button class="action-btn btn-loop" id="loopBtn" onclick="toggleLoop()">LOOP: OFF</button>
+        <button class="action-btn" onclick="addLocalTracks()">+ ADD FILES</button>
+        <button class="action-btn" onclick="clearAll()">CLEAR ALL</button>
     </div>
 
     <div class="playlist" id="playlist"></div>
@@ -186,137 +61,144 @@
 <audio id="player"></audio>
 
 <script>
+    // --- CONFIG ---
+    const SKIP_TIME = 60; 
+
+    // --- ELEMENTS ---
     const audio = document.getElementById('player');
     const playBtn = document.getElementById('playBtn');
-    const seekSlider = document.getElementById('seekSlider');
-    const speedSlider = document.getElementById('speedSlider');
-    const speedVal = document.getElementById('speedVal');
-    const playlistElem = document.getElementById('playlist');
     const trackNameDisp = document.getElementById('trackName');
-    const loopBtn = document.getElementById('loopBtn');
+    const playlistElem = document.getElementById('playlist');
+    const seekSlider = document.getElementById('seekSlider');
+    const speedDisp = document.getElementById('speedDisplay');
 
-    let library = []; let currentIndex = 0; let loopMode = 0; 
+    // --- STATE ---
+    let library = []; 
+    let currentIndex = 0;
+    let currentSpeed = 1.0;
 
-    // DB Setup
+    // --- DB STORAGE ---
     let db;
-    const request = indexedDB.open("PlayerMetaDB", 1);
+    const request = indexedDB.open("LocalPlayerDB_v3", 1);
     request.onupgradeneeded = e => e.target.result.createObjectStore("meta", { keyPath: "id" });
-    request.onsuccess = e => { db = e.target.result; loadSavedLibrary(); };
+    request.onsuccess = e => { db = e.target.result; loadLibrary(); };
 
-    async function saveLibraryToDB() {
+    function saveLibrary() {
         const tx = db.transaction("meta", "readwrite");
-        tx.objectStore("meta").put({ id: "library", data: library });
-        localStorage.setItem('last_index', currentIndex);
-        localStorage.setItem('last_pos', audio.currentTime);
-        localStorage.setItem('last_loop', loopMode);
+        tx.objectStore("meta").put({ id: "library", data: library.map(i => ({ name: i.name, handle: i.handle })) });
+        localStorage.setItem('last_idx', currentIndex);
     }
 
-    async function loadSavedLibrary() {
+    function loadLibrary() {
         const tx = db.transaction("meta", "readonly");
-        const req = tx.objectStore("meta").get("library");
-        req.onsuccess = () => { if (req.result) { library = req.result.data; renderPlaylist(); restoreSession(); } };
+        tx.objectStore("meta").get("library").onsuccess = e => {
+            if (e.target.result) {
+                library = e.target.result.data;
+                renderPlaylist();
+                restoreSession();
+            }
+        };
     }
 
-    async function addTracks() {
-        if ('showOpenFilePicker' in window) {
-            try {
-                const handles = await window.showOpenFilePicker({
-                    multiple: true,
-                    types: [{ description: 'Audio', accept: { 'audio/*': ['.mp3', '.wav', '.m4a'] } }]
-                });
-                for (const handle of handles) { library.push({ name: handle.name, handle: handle }); }
-                renderPlaylist(); saveLibraryToDB();
-            } catch (err) {}
+    function restoreSession() {
+        const lastIdx = localStorage.getItem('last_idx');
+        if (lastIdx !== null && library[lastIdx]) {
+            currentIndex = parseInt(lastIdx);
+            trackNameDisp.innerText = library[currentIndex].name;
         }
     }
 
-    async function playTrack(index, startTime = 0) {
-        if (!library[index]) return;
-        currentIndex = index;
+    // --- LOGIC ---
+    function skipForward() {
+        if (audio.duration) {
+            audio.currentTime = Math.min(audio.currentTime + SKIP_TIME, audio.duration);
+        }
+    }
+
+    async function verifyPermission(handle) {
+        if ((await handle.queryPermission()) === 'granted') return true;
+        return (await handle.requestPermission()) === 'granted';
+    }
+
+    async function playTrack(idx) {
+        if (!library[idx]) return;
+        currentIndex = idx;
+        const item = library[idx];
+
         try {
-            const handle = library[index].handle;
-            if (await handle.queryPermission() !== 'granted') {
-                if (await handle.requestPermission() !== 'granted') return;
+            if (await verifyPermission(item.handle)) {
+                const file = await item.handle.getFile();
+                audio.src = URL.createObjectURL(file);
+                trackNameDisp.innerText = item.name;
+                audio.playbackRate = currentSpeed;
+                audio.play();
+                renderPlaylist();
+                saveLibrary();
             }
-            const file = await handle.getFile();
-            if (audio.src) URL.revokeObjectURL(audio.src);
-            audio.src = URL.createObjectURL(file);
-            audio.currentTime = startTime;
-            trackNameDisp.innerText = library[index].name;
-            audio.play(); renderPlaylist(); setupMediaSession();
-        } catch (err) { trackNameDisp.innerText = "TAP TO RELINK"; }
+        } catch (e) { trackNameDisp.innerText = "FILE ERROR"; }
+    }
+
+    function togglePlay() {
+        if (audio.paused) audio.play().catch(() => {});
+        else audio.pause();
+    }
+
+    async function addLocalTracks() {
+        try {
+            const handles = await window.showOpenFilePicker({ 
+                multiple: true, 
+                types: [{ accept: {'audio/*':['.mp3','.m4a','.flac']} }] 
+            });
+            for (const h of handles) library.push({ name: h.name, handle: h });
+            renderPlaylist(); 
+            saveLibrary();
+        } catch(e){}
     }
 
     function renderPlaylist() {
         playlistElem.innerHTML = '';
-        library.forEach((item, idx) => {
-            const div = document.createElement('div');
-            div.className = `track-item ${idx === currentIndex ? 'active' : ''}`;
-            div.innerText = item.name;
-            div.onclick = () => playTrack(idx);
-            playlistElem.appendChild(div);
+        library.forEach((s, idx) => {
+            const d = document.createElement('div');
+            d.className = `track-item ${idx === currentIndex ? 'active' : ''}`;
+            d.innerText = s.name;
+            d.onclick = () => playTrack(idx);
+            playlistElem.appendChild(d);
         });
     }
 
-    function togglePlay() { audio.paused ? audio.play() : audio.pause(); }
-    function skipForward() { audio.currentTime += 60; }
+    // --- HEADSET & MEDIA SESSION ---
+    audio.onplay = () => {
+        playBtn.innerText = "⏸";
+        if ('mediaSession' in navigator) {
+            navigator.mediaSession.metadata = new MediaMetadata({ title: library[currentIndex].name });
+            navigator.mediaSession.setActionHandler('play', () => audio.play());
+            navigator.mediaSession.setActionHandler('pause', () => audio.pause());
+            // Double Click -> Skip 60s
+            navigator.mediaSession.setActionHandler('nexttrack', () => skipForward());
+            // Triple Click -> Next Song
+            navigator.mediaSession.setActionHandler('previoustrack', () => nextTrack());
+        }
+    };
+    audio.onpause = () => playBtn.innerText = "▶";
+    audio.onended = () => nextTrack();
+
+    // --- UI HELPERS ---
+    function adjustSpeed(delta) {
+        currentSpeed = Math.min(Math.max(currentSpeed + delta, 0.5), 2.5);
+        audio.playbackRate = currentSpeed;
+        speedDisp.innerText = currentSpeed.toFixed(1) + "x";
+    }
     function nextTrack() { playTrack((currentIndex + 1) % library.length); }
-    function prevTrack() {
-        if (audio.currentTime > 5) audio.currentTime = 0;
-        else playTrack((currentIndex - 1 + library.length) % library.length);
-    }
-
-    function toggleLoop() {
-        loopMode = (loopMode + 1) % 3;
-        const labels = ["LOOP: OFF", "LOOP: ONE", "LOOP: ALL"];
-        loopBtn.innerText = labels[loopMode];
-        loopBtn.classList.toggle('active', loopMode > 0);
-        saveLibraryToDB();
-    }
-
-    function adjSpeed(delta) { updateSpeed((parseFloat(audio.playbackRate) + delta).toFixed(1)); }
-    speedSlider.oninput = () => updateSpeed(speedSlider.value);
-    function updateSpeed(val) {
-        val = Math.max(0.5, Math.min(2.5, val));
-        audio.playbackRate = val; speedSlider.value = val; speedVal.innerText = val;
-    }
-
-    function clearAll() { if(confirm("Clear playlist?")) { library = []; audio.src = ""; trackNameDisp.innerText = "NO TRACK"; renderPlaylist(); saveLibraryToDB(); } }
-
-    function restoreSession() {
-        const lastIdx = localStorage.getItem('last_index'), lastPos = localStorage.getItem('last_pos'), lastLoop = localStorage.getItem('last_loop');
-        if (lastLoop !== null) { loopMode = parseInt(lastLoop); toggleLoop(); toggleLoop(); toggleLoop(); } // Trigger UI sync
-        if (lastIdx !== null && library[lastIdx]) { currentIndex = parseInt(lastIdx); trackNameDisp.innerText = library[currentIndex].name; audio.currentTime = parseFloat(lastPos || 0); renderPlaylist(); }
-    }
+    function prevTrack() { playTrack((currentIndex - 1 + library.length) % library.length); }
+    function clearAll() { library=[]; renderPlaylist(); saveLibrary(); trackNameDisp.innerText="READY"; }
 
     audio.ontimeupdate = () => {
         seekSlider.max = audio.duration || 0; seekSlider.value = audio.currentTime;
         document.getElementById('curTime').innerText = formatTime(audio.currentTime);
         document.getElementById('durTime').innerText = formatTime(audio.duration);
-        if (Math.floor(audio.currentTime) % 5 === 0) saveLibraryToDB();
-    };
-    audio.onplay = () => playBtn.innerText = "⏸";
-    audio.onpause = () => playBtn.innerText = "▶";
-    audio.onended = () => {
-        if (loopMode === 1) audio.play();
-        else if (loopMode === 2 || currentIndex < library.length - 1) nextTrack();
     };
     seekSlider.oninput = () => audio.currentTime = seekSlider.value;
-
-    function formatTime(s) { if (isNaN(s)) return "0:00"; let m = Math.floor(s/60), sec = Math.floor(s%60); return m + ":" + (sec < 10 ? "0"+sec : sec); }
-
-    function setupMediaSession() {
-        if ('mediaSession' in navigator) {
-            navigator.mediaSession.metadata = new MediaMetadata({ title: library[currentIndex].name });
-            navigator.mediaSession.setActionHandler('play', () => audio.play());
-            navigator.mediaSession.setActionHandler('pause', () => audio.pause());
-            // HEADSET LOGIC:
-            // Double Click (nexttrack signal) -> Skips 1 minute forward
-            navigator.mediaSession.setActionHandler('nexttrack', () => skipForward());
-            // Triple Click (previoustrack signal) -> Skips to Next Song
-            navigator.mediaSession.setActionHandler('previoustrack', () => nextTrack());
-        }
-    }
+    function formatTime(s) { let m=Math.floor(s/60),sec=Math.floor(s%60); return m+":"+(sec<10?"0"+sec:sec); }
 </script>
 </body>
 </html>
