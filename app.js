@@ -8,6 +8,7 @@
 const DB_NAME = 'audio-player-db';
 const STORE = 'tracks';
 const META_KEY = '__meta'; // { currentTrackIndex, currentTime }
+const APP_VERSION = '1.0.1';
 
 // ---- State ----
 const state = {
@@ -443,6 +444,8 @@ async function init() {
   renderSleepTimer();
   renderPlaylist();
   updateNowPlaying();
+  const versionEl = document.querySelector('.version');
+  if (versionEl) versionEl.textContent = APP_VERSION;
   if (state.currentIndex >= 0 && state.tracks.length) {
     loadTrack(state.currentIndex, false);
   } else if (state.tracks.length) {
