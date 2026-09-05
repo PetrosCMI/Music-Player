@@ -32,8 +32,6 @@ body {
   display: flex;
   flex-direction: column;
   gap: 20px;
-  min-height: 100vh;
-  min-height: 100dvh;
 }
 
 .app-header {
@@ -288,13 +286,14 @@ body {
 
 /* Playlist */
 .playlist-section {
-  flex: 1;
   background: var(--surface);
   border-radius: 16px;
   padding: 16px;
   display: flex;
   flex-direction: column;
   gap: 12px;
+  min-height: 200px;
+  max-height: 45vh;
 }
 
 .playlist-header {

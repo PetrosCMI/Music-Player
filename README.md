@@ -13,6 +13,7 @@ A web-based audio player built with vanilla HTML/CSS/JS — no build step, no de
 - **Persistent playlist** — tracks, current track, and playback position are saved to IndexedDB and restored on next open.
 - **Playback speed** — slider + ±0.1 buttons (0.25x–4.0x). Speed changes pitch (standard web-player behavior; see notes).
 - **Loop modes** — Off → Repeat One → Loop All (button cycling).
+- **Sleep timer** — Off → 15 → 30 → 45 → 60 min, then back to Off. When it fires, playback pauses. State persists across reloads.
 - **Skip controls** — 60s forward / backward on screen, plus MediaSession handlers.
 
 ## Controls
@@ -23,6 +24,7 @@ A web-based audio player built with vanilla HTML/CSS/JS — no build step, no de
 | Skip forward 60s | ✓ | Double press |
 | Previous track | ✓ | Triple press |
 | Loop off / one / all | ✓ | — |
+| Sleep timer | ✓ | — |
 | Speed ±0.1 | ✓ | — |
 | Speed slider | ✓ | — |
 
@@ -58,6 +60,10 @@ The phase-vocoder in `worklet.js` implements pitch-preserving time-stretch. The 
 3. Open your site URL (e.g. `https://<user>.github.io/<repo>/`).
 
 > Note: For IndexedDB persistence and PWA install, serve over HTTPS (GitHub Pages provides this). Local `file://` access works for playback but IndexedDB may be restricted in some browsers.
+
+## Mobile layout
+
+The app is mobile-first. The control area (Now Playing, seek bar, transport) stays fixed-size and readable; the playlist grows to fill remaining space up to `max-height: 45vh`, then scrolls internally via `overflow-y: auto`. This keeps the transport controls from being crushed when a long playlist is loaded.
 
 ## Requirements coverage
 
