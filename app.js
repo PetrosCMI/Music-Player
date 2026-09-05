@@ -283,7 +283,7 @@ function setLoopMode() {
   // Repeat N -> green disc, 'N'
   const loopPath = '<path fill="currentColor" d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/>';
   const label = state.loopMode === 'none' ? '0' : (state.loopMode === 'one' ? '1' : 'N');
-  el.loopIcon.innerHTML = `<rect x="0" y="0" width="24" height="24" rx="12" fill="var(--accent)"/><path fill="#ffffff" d="${loopPath}"/><text x="12" y="17" font-size="12" text-anchor="middle" fill="#ffffff" font-weight="bold">${label}</text>`;
+  el.loopIcon.innerHTML = `<rect x="0" y="0" width="24" height="24" rx="12" fill="var(--accent)"/><path fill="#ffffff" d="${loopPath}"/><text x="12" y="17" font-size="24" text-anchor="middle" fill="#ffffff" font-weight="bold">${label}</text>`;
   el.loopBtn.classList.toggle('active', state.loopMode !== 'none');
   el.loopBtn.title = `Loop: ${state.loopMode}`;
 }
