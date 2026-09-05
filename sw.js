@@ -1,5 +1,5 @@
 // Service worker: cache the app shell for offline use.
-const CACHE = 'audio-player-v1';
+const CACHE = 'audio-player-v2';
 const ASSETS = [
   './',
   './index.html',
@@ -26,8 +26,12 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   const req = event.request;
   if (req.method !== 'GET') return;
-  // Cache-first for app shell, fall back to network
+  // Network-first: always try the network, fall back to cache for offline.
   event.respondWith(
-    caches.match(req).then(cached => cached || fetch(req))
+    fetch(req).then(networkRes => {
+      const copy = networkRes.clone();
+      caches.open(CACHE).then(cache => cache.put(req, copy));
+      return networkRes;
+    }).catch(() => caches.match(req))
   );
 });
