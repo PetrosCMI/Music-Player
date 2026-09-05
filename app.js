@@ -279,7 +279,7 @@ function setLoopMode() {
 
   // Repeat button: outline green square with a large white 0 / 1 / N inside.
   const label = state.loopMode === 'none' ? '0' : (state.loopMode === 'one' ? '1' : 'N');
-  el.loopIcon.innerHTML = `<rect x="2" y="2" width="20" height="20" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><text x="12" y="16" font-size="10" text-anchor="middle" fill="#ffffff" font-weight="bold">${label}</text>`;
+  el.loopIcon.innerHTML = `<rect x="0" y="0" width="24" height="24" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><text x="12" y="16" font-size="12" text-anchor="middle" fill="#ffffff" font-weight="bold">${label}</text>`;
   el.loopBtn.classList.toggle('active', state.loopMode !== 'none');
   el.loopBtn.title = `Loop: ${state.loopMode}`;
 }
