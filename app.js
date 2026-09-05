@@ -374,8 +374,8 @@ function wireEvents() {
   el.loopBtn.addEventListener('click', setLoopMode);
 
   el.speedSlider.addEventListener('input', () => { applySpeed(parseFloat(el.speedSlider.value)); saveState(); });
-  el.speedUpBtn.addEventListener('click', () => applySpeed(state.speed + 0.1));
-  el.speedDownBtn.addEventListener('click', () => applySpeed(state.speed - 0.1));
+  el.speedUpBtn.addEventListener('click', () => applySpeed(state.speed + 0.05));
+  el.speedDownBtn.addEventListener('click', () => applySpeed(state.speed - 0.05));
 
   el.seekSlider.addEventListener('input', () => {
     if (!audioElement || !audioElement.duration) return;
@@ -407,8 +407,8 @@ function wireEvents() {
       case 'Space': e.preventDefault(); togglePlayPause(); break;
       case 'ArrowRight': skipForward(); break;
       case 'ArrowLeft': skipBackward(); break;
-      case 'ArrowUp': applySpeed(state.speed + 0.1); break;
-      case 'ArrowDown': applySpeed(state.speed - 0.1); break;
+      case 'ArrowUp': applySpeed(state.speed + 0.05); break;
+      case 'ArrowDown': applySpeed(state.speed - 0.05); break;
     }
   });
 }
