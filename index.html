@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#0f0f0f">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Audio Player 1.0.0</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="app">
+    <!-- Header -->
+    <header class="app-header">
+      <h1>Audio Player <span class="version">1.0.0</span></h1>
+    </header>
+
+    <!-- Now Playing display -->
+    <section class="now-playing">
+      <div class="track-art" id="trackArt">
+        <svg viewBox="0 0 24 24" width="64" height="64" class="music-note">
+          <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55C7.79 13 6 14.79 6 17s1.79 3 4 3 4-1.79 4-3V7h4V3z"/>
+        </svg>
+      </div>
+      <div class="track-info">
+        <h2 id="trackTitle" class="track-title">No track loaded</h2>
+        <p id="trackIndex" class="track-index"></p>
+      </div>
+    </section>
+
+    <!-- Progress indicator -->
+    <section class="progress-section">
+      <input type="range" id="seekSlider" min="0" max="100" value="0" step="0.1" class="seek-slider">
+      <div class="time-display">
+        <span id="currentTime">0:00</span>
+        <span id="duration">0:00</span>
+      </div>
+    </section>
+
+    <!-- Main transport controls -->
+    <section class="controls">
+      <div class="controls-row">
+        <button id="prevBtn" class="ctrl-btn prev" title="Previous track (triple-click headset)">
+          <svg viewBox="0 0 24 24" width="28" height="28"><path fill="currentColor" d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+        </button>
+
+        <button id="skipBackBtn" class="ctrl-btn skip" title="Skip backward 60s">
+          <svg viewBox="0 0 24 24" width="28" height="28"><path fill="currentColor" d="M11 18V6l-8.5 6 8.5 6zm11-6h-8v6h8z"/></svg>
+        </button>
+
+        <button id="playPauseBtn" class="ctrl-btn play" title="Play/Pause">
+          <svg id="playIcon" viewBox="0 0 24 24" width="40" height="40"><path fill="currentColor" d="M8 5v14l11-7z"/></svg>
+          <svg id="pauseIcon" viewBox="0 0 24 24" width="40" height="40" class="hidden"><path fill="currentColor" d="M6 19h4V5H6zm8-14v14h4V5z"/></svg>
+        </button>
+
+        <button id="skipFrontBtn" class="ctrl-btn skip" title="Skip forward 60s (double-click headset)">
+          <svg viewBox="0 0 24 24" width="28" height="28"><path fill="currentColor" d="M4 18l8.5-6L4 6v12zm9-12v12h8V6z"/></svg>
+        </button>
+
+        <button id="nextBtn" class="ctrl-btn next" title="Next track (single-click headset)">
+          <svg viewBox="0 0 24 24" width="28" height="28"><path fill="currentColor" d="M6 18l8.5-6L6 6v12zm10-12h2v12h-2z"/></svg>
+        </button>
+      </div>
+
+      <div class="controls-row">
+        <button id="loopBtn" class="ctrl-btn loop" title="Loop: off">
+          <svg id="loopIcon" viewBox="0 0 24 24" width="26" height="26"><rect x="0" y="0" width="24" height="24" rx="12" fill="var(--accent)"/><path fill="#ffffff" d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/><text x="12" y="17" font-size="12" text-anchor="middle" fill="#ffffff" font-weight="bold">0</text></svg>
+        </button>
+
+        <div class="speed-control">
+          <label for="speedSlider">Speed</label>
+          <input type="range" id="speedSlider" min="0.25" max="4" step="0.05" value="1">
+          <span id="speedValue" class="speed-value">1.0x</span>
+        </div>
+
+        <div class="speed-adjust">
+          <button id="speedDownBtn" class="ctrl-btn speed-adj" title="Slower">−</button>
+          <button id="speedUpBtn" class="ctrl-btn speed-adj" title="Faster">+</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Playlist section -->
+    <section class="playlist-section">
+      <div class="playlist-header">
+        <h3>Playlist <span id="trackCount" class="track-count">0</span></h3>
+        <div class="playlist-actions">
+          <button id="addBtn" class="action-btn add">
+            <svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6z"/></svg>
+            Add
+          </button>
+          <button id="clearBtn" class="action-btn clear">
+            <svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+            Clear
+          </button>
+          <input type="file" id="fileInput" accept="audio/*" multiple hidden>
+        </div>
+      </div>
+      <ul id="playlist" class="playlist"></ul>
+      <p id="emptyState" class="empty-state">Your playlist is empty. Add audio files to get started.</p>
+    </section>
+  </div>
+
+  <!-- Background playback keep-alive element -->
+  <video id="keepAlive" playsinline style="display:none"></video>
+
+  <script src="app.js"></script>
+</body>
+</html>

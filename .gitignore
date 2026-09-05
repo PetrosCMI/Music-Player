@@ -1,0 +1,9 @@
+# Audio files (too large, not part of the app)
+*.mp3
+*.wav
+*.flac
+
+# Local test/dev scripts
+debug-dsp.js
+test-dsp.js
+test-logic.js
