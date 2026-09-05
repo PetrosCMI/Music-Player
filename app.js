@@ -16,6 +16,8 @@ const state = {
   currentTime: 0,
   loopMode: 'none', // 'none' | 'one' | 'all'
   speed: 1.0,
+  sleepTimerMinutes: 0, // 0 = off; else minutes remaining when set
+  sleepTimerExpiresAt: null, // epoch ms, or null when off
 };
 
 // ---- DOM refs ----
@@ -43,6 +45,8 @@ function cacheDom() {
   el.speedDownBtn = document.getElementById('speedDownBtn');
   el.addBtn = document.getElementById('addBtn');
   el.clearBtn = document.getElementById('clearBtn');
+  el.sleepBtn = document.getElementById('sleepBtn');
+  el.sleepLabel = document.getElementById('sleepLabel');
   el.fileInput = document.getElementById('fileInput');
   el.playlist = document.getElementById('playlist');
   el.trackCount = document.getElementById('trackCount');
@@ -96,16 +100,31 @@ async function dbClear() {
 // ---- Persistence ----
 async function saveState() {
   await dbPut('tracks', state.tracks);
-  await dbPut(META_KEY, { currentTrackIndex: state.currentIndex, currentTime: state.currentTime });
+  await dbPut(META_KEY, {
+    currentTrackIndex: state.currentIndex,
+    currentTime: state.currentTime,
+    loopMode: state.loopMode,
+    speed: state.speed,
+    sleepTimerMinutes: state.sleepTimerMinutes,
+    sleepTimerExpiresAt: state.sleepTimerExpiresAt,
+  });
 }
 
 async function loadState() {
   const tracks = await dbGet('tracks');
   const meta = await dbGet(META_KEY);
   if (tracks && tracks.length) state.tracks = tracks;
-  if (meta && typeof meta.currentTrackIndex === 'number') {
-    state.currentIndex = meta.currentTrackIndex;
-    state.currentTime = meta.currentTime || 0;
+  if (meta) {
+    if (typeof meta.currentTrackIndex === 'number') {
+      state.currentIndex = meta.currentTrackIndex;
+      state.currentTime = meta.currentTime || 0;
+    }
+    if (meta.loopMode) state.loopMode = meta.loopMode;
+    if (typeof meta.speed === 'number') state.speed = meta.speed;
+    if (typeof meta.sleepTimerMinutes === 'number') {
+      state.sleepTimerMinutes = meta.sleepTimerMinutes;
+      state.sleepTimerExpiresAt = meta.sleepTimerExpiresAt || null;
+    }
   }
 }
 
@@ -213,7 +232,46 @@ function prevTrack() {
   loadTrack(idx);
 }
 
-// Single button cycles: off -> repeat one -> loop all
+// ---- Sleep timer ----
+const SLEEP_OPTIONS = [0, 15, 30, 45, 60]; // minutes; 0 = off
+function setSleepTimer() {
+  const i = SLEEP_OPTIONS.indexOf(state.sleepTimerMinutes);
+  state.sleepTimerMinutes = SLEEP_OPTIONS[(i + 1) % SLEEP_OPTIONS.length];
+  if (state.sleepTimerMinutes > 0) {
+    state.sleepTimerExpiresAt = Date.now() + state.sleepTimerMinutes * 60000;
+  } else {
+    state.sleepTimerExpiresAt = null;
+  }
+  renderSleepTimer();
+  saveState();
+}
+
+function renderSleepTimer() {
+  const active = state.sleepTimerMinutes > 0;
+  el.sleepBtn.classList.toggle('active', active);
+  el.sleepBtn.title = `Sleep timer: ${state.sleepTimerMinutes ? `${state.sleepTimerMinutes} min` : 'off'}`;
+  el.sleepLabel.textContent = state.sleepTimerMinutes ? `${state.sleepTimerMinutes}m` : '';
+}
+
+function checkSleepTimer() {
+  if (!state.sleepTimerExpiresAt) return;
+  const remaining = Math.ceil((state.sleepTimerExpiresAt - Date.now()) / 1000);
+  if (remaining <= 0) {
+    // Timer expired — pause playback.
+    state.sleepTimerMinutes = 0;
+    state.sleepTimerExpiresAt = null;
+    renderSleepTimer();
+    saveState();
+    if (audioElement && !audioElement.paused) {
+      audioElement.pause();
+    }
+    setPlayIcon(true);
+  } else if (remaining <= 10) {
+    // Live countdown in the label for the final 10 seconds.
+    const s = remaining;
+    el.sleepLabel.textContent = `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
+  }
+}
 function setLoopMode() {
   const modes = ['none', 'one', 'all'];
   const i = modes.indexOf(state.loopMode);
@@ -294,6 +352,7 @@ function onTimeUpdate() {
     state.currentTime = cur;
     saveState();
   }
+  checkSleepTimer();
 }
 
 // ---- MediaSession (headset controls) ----
@@ -345,6 +404,8 @@ function wireEvents() {
     saveState();
   });
 
+  el.sleepBtn.addEventListener('click', setSleepTimer);
+
   document.addEventListener('keydown', e => {
     switch (e.code) {
       case 'Space': e.preventDefault(); togglePlayPause(); break;
@@ -383,6 +444,7 @@ async function init() {
   await loadState();
   applySpeed(state.speed || 1.0);
   if (state.loopMode) setLoopMode();
+  renderSleepTimer();
   renderPlaylist();
   updateNowPlaying();
   if (state.currentIndex >= 0 && state.tracks.length) {
