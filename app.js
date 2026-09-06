@@ -8,7 +8,7 @@
 const DB_NAME = 'audio-player-db';
 const STORE = 'tracks';
 const META_KEY = '__meta'; // { currentTrackIndex, currentTime }
-const APP_VERSION = '1.0.2';
+const APP_VERSION = '1.0.3';
 
 // Headset multi-click state (module scope).
 let headsetClicks = 0;
@@ -363,6 +363,9 @@ function onTimeUpdate() {
 // because it fires on every press regardless of the current action map.
 function recordHeadsetClick() {
   headsetClicks += 1;
+  // Live toast on EVERY raw press so we can see exactly how many taps
+  // Android delivers to the app. This is the key diagnostic.
+  showToast('Press ' + headsetClicks);
   if (headsetTimer) clearTimeout(headsetTimer);
   headsetTimer = setTimeout(() => {
     switch (headsetClicks) {
@@ -371,20 +374,42 @@ function recordHeadsetClick() {
       case 3: prevTrack(); break;
       default: break;
     }
+    // Final toast showing what action actually fired.
+    const actions = { 1: 'Play', 2: 'Skip +60s', 3: 'Prev track' };
+    showToast(actions[headsetClicks] || '');
     headsetClicks = 0;
   }, CLICK_TIMEOUT);
 }
 
+function showToast(msg) {
+  let toast = document.getElementById('debugToast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'debugToast';
+    toast.style.cssText =
+      'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);' +
+      'background:rgba(29,185,84,0.95);color:#000;padding:8px 16px;' +
+      'border-radius:20px;font-size:14px;font-weight:600;z-index:9999;' +
+      'transition:opacity .3s;pointer-events:none;';
+    document.body.appendChild(toast);
+  }
+  toast.textContent = msg;
+  toast.style.opacity = '1';
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(() => { toast.style.opacity = '0'; }, 1200);
+}
+
 // ---- MediaSession (headset controls) ----
+// Register ONLY 'playpause'. When multiple action handlers are registered,
+// Android's MediaSession framework does its own OEM-dependent multi-tap
+// recognition and routes double/triple presses directly to nexttrack/prevtrack,
+// bypassing our counter. With a single handler, every physical press arrives as
+// 'playpause', so recordHeadsetClick can count them deterministically.
 function setupMediaSession() {
   if (!('mediaSession' in navigator)) return;
   try {
-    navigator.mediaSession.metadata = new MediaMetadata({ title: 'Audio Player 1.0.1' });
+    navigator.mediaSession.metadata = new MediaMetadata({ title: 'Audio Player 1.0.2' });
     navigator.mediaSession.setActionHandler('playpause', recordHeadsetClick);
-    navigator.mediaSession.setActionHandler('nexttrack', nextTrack);
-    navigator.mediaSession.setActionHandler('prevtrack', prevTrack);
-    navigator.mediaSession.setActionHandler('skipforward', skipForward);
-    navigator.mediaSession.setActionHandler('skipbackward', () => { if (audioElement) audioElement.currentTime = Math.max(0, audioElement.currentTime - 10); });
   } catch (e) { console.warn('MediaSession setup failed', e); }
 }
 
