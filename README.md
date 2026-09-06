@@ -8,8 +8,6 @@ A web-based audio player built with vanilla HTML/CSS/JS — no build step, no de
 - **Playback survives screen off** — uses a Web Audio keep-alive so playback continues when the display is off (Android; iOS has platform limits with a pure PWA).
 - **Bluetooth headset controls** — wired through the MediaSession API:
   - Single press → play/pause
-  - Double press → skip forward 60s
-  - Triple press → previous track
 - **Persistent playlist** — tracks, current track, and playback position are saved to IndexedDB and restored on next open.
 - **Playback speed** — slider + ±0.1 buttons (0.25x–4.0x). Speed changes pitch (standard web-player behavior; see notes).
 - **Loop modes** — Off → Repeat One → Loop All (button cycling).
@@ -21,8 +19,7 @@ A web-based audio player built with vanilla HTML/CSS/JS — no build step, no de
 | Control | Screen | Headset |
 |---|---|---|
 | Play/Pause | ✓ | Single press |
-| Skip forward 60s | ✓ | Double press |
-| Previous track | ✓ | Triple press |
+| Skip forward 60s | ✓ | — |
 | Loop off / one / all | ✓ | — |
 | Sleep timer | ✓ | — |
 | Speed ±0.1 | ✓ | — |
@@ -81,5 +78,5 @@ The app is mobile-first. The control area (Now Playing, seek bar, transport) sta
 | Speed slider with ±0.1 buttons | ✓ 0.25x–4.0x |
 | Play/pause (screen + headset) | ✓ |
 | Skip forward 60s (screen + headset) | ✓ |
-| Previous track (screen + headset) | ✓ |
+| Previous track (screen) | ✓ |
 | Loop off / one / all | ✓ |

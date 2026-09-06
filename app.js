@@ -8,7 +8,7 @@
 const DB_NAME = 'audio-player-db';
 const STORE = 'tracks';
 const META_KEY = '__meta'; // { currentTrackIndex, currentTime }
-const APP_VERSION = '1.0.4';
+const APP_VERSION = '1.0.5';
 
 // ---- State ----
 const state = {

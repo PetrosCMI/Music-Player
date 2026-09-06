@@ -11,8 +11,8 @@
 - track position indicator on screen
 - playback speed slider on screen with buttons for 0.1 factor adjustments
 - play/pause - from screen or from single press on headset
-- skip forward 60s - button on screen or double click on headset
-- previous track - button on screen or triple click on headset
+- skip forward 60s - button on screen
+- previous track - button on screen
 - no loop, loop 1 track, loop all button on screen
 
 
