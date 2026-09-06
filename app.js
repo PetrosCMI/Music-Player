@@ -8,12 +8,7 @@
 const DB_NAME = 'audio-player-db';
 const STORE = 'tracks';
 const META_KEY = '__meta'; // { currentTrackIndex, currentTime }
-const APP_VERSION = '1.0.3';
-
-// Headset multi-click state (module scope).
-let headsetClicks = 0;
-let headsetTimer = null;
-const CLICK_TIMEOUT = 500; // ms window to group repeated presses
+const APP_VERSION = '1.0.4';
 
 // ---- State ----
 const state = {
@@ -357,30 +352,12 @@ function onTimeUpdate() {
   checkSleepTimer();
 }
 
-// ---- Headset multi-click detection ----
-// Groups headset button presses within a short window so single/double/triple
-// clicks can be distinguished. The playpause action is used as the trigger
-// because it fires on every press regardless of the current action map.
-function recordHeadsetClick() {
-  headsetClicks += 1;
-  if (headsetTimer) clearTimeout(headsetTimer);
-  headsetTimer = setTimeout(() => {
-    switch (headsetClicks) {
-      case 1: togglePlayPause(); break;
-      case 2: skipForward(); break;
-      case 3: prevTrack(); break;
-      default: break;
-    }
-    headsetClicks = 0;
-  }, CLICK_TIMEOUT);
-}
-
 // ---- MediaSession (headset controls) ----
 function setupMediaSession() {
   if (!('mediaSession' in navigator)) return;
   try {
-    navigator.mediaSession.metadata = new MediaMetadata({ title: 'Audio Player 1.0.1' });
-    navigator.mediaSession.setActionHandler('playpause', recordHeadsetClick);
+    navigator.mediaSession.metadata = new MediaMetadata({ title: 'Audio Player 1.0.3' });
+    navigator.mediaSession.setActionHandler('playpause', togglePlayPause);
     navigator.mediaSession.setActionHandler('nexttrack', nextTrack);
     navigator.mediaSession.setActionHandler('prevtrack', prevTrack);
     navigator.mediaSession.setActionHandler('skipforward', skipForward);
