@@ -8,6 +8,7 @@ A web-based audio player built with vanilla HTML/CSS/JS — no build step, no de
 - **Playback survives screen off** — uses a Web Audio keep-alive so playback continues when the display is off (Android; iOS has platform limits with a pure PWA).
 - **Bluetooth headset controls** — wired through the MediaSession API:
   - Single press → play/pause
+- **Play button press modes** — short press starts playing and adds 15 min to the playback timer (repeat presses accumulate: 30, 45…); long press plays without a timer. Remaining time is shown in the center of the play button while the timer runs.
 - **Persistent playlist** — tracks, current track, and playback position are saved to IndexedDB and restored on next open.
 - **Playback speed** — slider + ±0.1 buttons (0.25x–4.0x). Speed changes pitch (standard web-player behavior; see notes).
 - **Loop modes** — Off → Repeat One → Loop All (button cycling).

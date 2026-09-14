@@ -8,7 +8,7 @@
 const DB_NAME = 'audio-player-db';
 const STORE = 'tracks';
 const META_KEY = '__meta'; // { currentTrackIndex, currentTime }
-const APP_VERSION = '1.0.5';
+const APP_VERSION = '1.0.6';
 
 // ---- State ----
 const state = {
@@ -33,6 +33,7 @@ function cacheDom() {
   el.playPauseBtn = document.getElementById('playPauseBtn');
   el.playIcon = document.getElementById('playIcon');
   el.pauseIcon = document.getElementById('pauseIcon');
+  el.playCountdown = document.getElementById('playCountdown');
   el.skipFrontBtn = document.getElementById('skipFrontBtn');
   el.skipBackBtn = document.getElementById('skipBackBtn');
   el.nextBtn = document.getElementById('nextBtn');
@@ -234,29 +235,61 @@ function prevTrack() {
 }
 
 // ---- Sleep timer ----
+// The sleep/playback timer counts down from state.sleepTimerExpiresAt (epoch ms).
+// A short press on the play button adds 15 min; the sleep button cycles presets.
 const SLEEP_OPTIONS = [0, 15, 30, 45, 60]; // minutes; 0 = off
+const sleepRemainingSec = () =>
+  state.sleepTimerExpiresAt ? Math.ceil((state.sleepTimerExpiresAt - Date.now()) / 1000) : 0;
+
 function setSleepTimer() {
-  const i = SLEEP_OPTIONS.indexOf(state.sleepTimerMinutes);
-  state.sleepTimerMinutes = SLEEP_OPTIONS[(i + 1) % SLEEP_OPTIONS.length];
-  if (state.sleepTimerMinutes > 0) {
-    state.sleepTimerExpiresAt = Date.now() + state.sleepTimerMinutes * 60000;
-  } else {
-    state.sleepTimerExpiresAt = null;
-  }
+  const remaining = sleepRemainingSec();
+  const currentMin = remaining > 0 ? Math.ceil(remaining / 60) : 0;
+  const i = SLEEP_OPTIONS.indexOf(currentMin);
+  const nextMin = SLEEP_OPTIONS[(i + 1) % SLEEP_OPTIONS.length];
+  state.sleepTimerMinutes = nextMin;
+  state.sleepTimerExpiresAt = nextMin > 0 ? Date.now() + nextMin * 60000 : null;
+  renderSleepTimer();
+  saveState();
+}
+
+// Add minutes to the playback timer, extending any running countdown.
+function addSleepMinutes(minutes) {
+  const base = state.sleepTimerExpiresAt && state.sleepTimerExpiresAt > Date.now()
+    ? state.sleepTimerExpiresAt
+    : Date.now();
+  state.sleepTimerExpiresAt = base + minutes * 60000;
+  state.sleepTimerMinutes = Math.ceil(minutes);
   renderSleepTimer();
   saveState();
 }
 
 function renderSleepTimer() {
-  const active = state.sleepTimerMinutes > 0;
+  const remaining = sleepRemainingSec();
+  const active = remaining > 0;
   el.sleepBtn.classList.toggle('active', active);
-  el.sleepBtn.title = `Sleep timer: ${state.sleepTimerMinutes ? `${state.sleepTimerMinutes} min` : 'off'}`;
-  el.sleepLabel.textContent = state.sleepTimerMinutes ? `${state.sleepTimerMinutes}m` : '0m';
+  el.sleepBtn.title = `Sleep timer: ${active ? `${Math.ceil(remaining / 60)} min` : 'off'}`;
+  el.sleepLabel.textContent = active ? `${Math.ceil(remaining / 60)}m` : '0m';
+  renderPlayCountdown();
+}
+
+// Show the remaining playback time in the center of the PLAY button.
+function renderPlayCountdown() {
+  const remaining = sleepRemainingSec();
+  const active = remaining > 0;
+  el.playPauseBtn.classList.toggle('timer-active', active);
+  if (!active) {
+    el.playCountdown.classList.add('hidden');
+    return;
+  }
+  const m = Math.floor(remaining / 60);
+  const s = remaining % 60;
+  el.playCountdown.textContent = `${m}:${s.toString().padStart(2, '0')}`;
+  el.playCountdown.classList.remove('hidden');
 }
 
 function checkSleepTimer() {
   if (!state.sleepTimerExpiresAt) return;
-  const remaining = Math.ceil((state.sleepTimerExpiresAt - Date.now()) / 1000);
+  const remaining = sleepRemainingSec();
   if (remaining <= 0) {
     // Timer expired — pause playback.
     state.sleepTimerMinutes = 0;
@@ -267,10 +300,8 @@ function checkSleepTimer() {
       audioElement.pause();
     }
     setPlayIcon(true);
-  } else if (remaining <= 10) {
-    // Live countdown in the label for the final 10 seconds.
-    const s = remaining;
-    el.sleepLabel.textContent = `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
+  } else {
+    renderSleepTimer();
   }
 }
 function setLoopMode() {
@@ -367,7 +398,30 @@ function setupMediaSession() {
 
 // ---- Event wiring ----
 function wireEvents() {
-  el.playPauseBtn.addEventListener('click', togglePlayPause);
+  // Play button: short press = play + add 15 min to the playback timer;
+  // long press (held 500ms+) = play with no timer. Presses are detected via
+  // pointer events so hold duration can be measured (click can't).
+  let holdStart = 0;
+  const LONG_PRESS_MS = 500;
+
+  el.playPauseBtn.addEventListener('contextmenu', e => e.preventDefault());
+  el.playPauseBtn.addEventListener('pointerdown', () => {
+    holdStart = Date.now();
+  });
+  el.playPauseBtn.addEventListener('pointerup', () => {
+    const held = Date.now() - holdStart;
+    holdStart = 0;
+    if (held >= LONG_PRESS_MS) {
+      // Long press: toggle playback WITHOUT touching the timer.
+      togglePlayPause();
+    } else {
+      // Short press: start playing and add 15 min to the playback timer.
+      const wasPaused = !audioElement || audioElement.paused;
+      togglePlayPause();
+      if (wasPaused) addSleepMinutes(15);
+    }
+  });
+  el.playPauseBtn.addEventListener('pointercancel', () => { holdStart = 0; });
   el.skipFrontBtn.addEventListener('click', skipForward);
   el.skipBackBtn.addEventListener('click', skipBackward);
   el.nextBtn.addEventListener('click', nextTrack);

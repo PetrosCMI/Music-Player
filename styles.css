@@ -177,6 +177,30 @@ body {
   width: 64px;
   height: 64px;
   background: var(--accent);
+  position: relative;
+}
+
+/* Remaining playback time shown centered over the play button */
+.play-countdown {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #000;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+
+/* While the countdown is visible, hide the play/pause icons so the time
+   sits in the center of the button (per design request). */
+.ctrl-btn.play.timer-active svg {
+  display: none;
 }
 
 .ctrl-btn.play:active {

@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#0f0f0f">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>Audio Player 1.0.5</title>
+  <title>Audio Player 1.0.6</title>
   <link rel="manifest" href="manifest.json">
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -14,7 +14,7 @@
   <div id="app">
     <!-- Header -->
     <header class="app-header">
-      <h1>Audio Player <span class="version">1.0.5</span></h1>
+      <h1>Audio Player <span class="version">1.0.6</span></h1>
     </header>
 
     <!-- Now Playing display -->
@@ -46,9 +46,10 @@
           <svg viewBox="0 0 24 24" width="28" height="28"><path fill="currentColor" d="M11 18V6l-8.5 6 8.5 6zm11-6h-8v6h8z"/></svg>
         </button>
 
-        <button id="playPauseBtn" class="ctrl-btn play" title="Play/Pause">
+        <button id="playPauseBtn" class="ctrl-btn play" title="Short press: play + add 15 min. Long press: play, no timer">
           <svg id="playIcon" viewBox="0 0 24 24" width="40" height="40"><path fill="currentColor" d="M8 5v14l11-7z"/></svg>
           <svg id="pauseIcon" viewBox="0 0 24 24" width="40" height="40" class="hidden"><path fill="currentColor" d="M6 19h4V5H6zm8-14v14h4V5z"/></svg>
+          <span id="playCountdown" class="play-countdown hidden"></span>
         </button>
 
         <button id="skipFrontBtn" class="ctrl-btn skip" title="Skip forward 60s (double-click headset)">
