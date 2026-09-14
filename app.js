@@ -8,7 +8,7 @@
 const DB_NAME = 'audio-player-db';
 const STORE = 'tracks';
 const META_KEY = '__meta'; // { currentTrackIndex, currentTime }
-const APP_VERSION = '1.0.9';
+const APP_VERSION = '1.0.10';
 
 // ---- State ----
 const state = {
@@ -34,6 +34,8 @@ function cacheDom() {
   el.pauseBtn = document.getElementById('pauseBtn');
   el.stopBtn = document.getElementById('stopBtn');
   el.playCountdown = document.getElementById('playCountdown');
+  el.togglePlayIcon = document.getElementById('togglePlayIcon');
+  el.togglePauseIcon = document.getElementById('togglePauseIcon');
   el.skipFrontBtn = document.getElementById('skipFrontBtn');
   el.skipBackBtn = document.getElementById('skipBackBtn');
   el.nextBtn = document.getElementById('nextBtn');
@@ -257,17 +259,19 @@ const sleepRemainingSec = () =>
   state.sleepTimerExpiresAt ? Math.ceil((state.sleepTimerExpiresAt - Date.now()) / 1000) : 0;
 
 // Add minutes to the playback timer, extending any running countdown.
-// The total remaining time never exceeds MAX_TIMER_MINUTES.
+// If an add would push the timer past the 90-minute cap, the timer resets
+// to zero (off) instead.
 function addSleepMinutes(minutes) {
   const now = Date.now();
   const base = state.sleepTimerExpiresAt && state.sleepTimerExpiresAt > now
     ? state.sleepTimerExpiresAt
     : now;
-  let expires = base + minutes * 60000;
-  const cap = now + MAX_TIMER_MINUTES * 60000;
-  if (expires > cap) expires = cap;
-  state.sleepTimerExpiresAt = expires;
-  state.sleepTimerMinutes = Math.ceil(sleepRemainingSec() / 60);
+  if (base + minutes * 60000 > now + MAX_TIMER_MINUTES * 60000) {
+    state.sleepTimerExpiresAt = null; // clicked past the cap — reset to 0
+  } else {
+    state.sleepTimerExpiresAt = base + minutes * 60000;
+  }
+  state.sleepTimerMinutes = 0;
   renderSleepTimer();
   saveState();
 }
@@ -352,8 +356,10 @@ function escapeHtml(s) {
 }
 
 function setPlayIcon(paused) {
-  // Play and pause are now separate buttons, so there is no icon state to
-  // toggle; just keep the track-art playing animation in sync.
+  // The stacked toggle button shows the icon for the action it will perform:
+  // while paused it shows ▶ (press = play); while playing it shows ⏸ (press = pause).
+  if (el.togglePlayIcon) el.togglePlayIcon.classList.toggle('hidden', !paused);
+  if (el.togglePauseIcon) el.togglePauseIcon.classList.toggle('hidden', paused);
   if (state.currentIndex >= 0) el.trackArt.classList.toggle('playing', !paused);
 }
 
@@ -407,7 +413,7 @@ function wireEvents() {
     playAudio();
     addSleepMinutes(15);
   });
-  el.pauseBtn.addEventListener('click', pauseAudio);
+  el.pauseBtn.addEventListener('click', togglePlayPause);
   el.stopBtn.addEventListener('click', stopPlayback);
   el.skipFrontBtn.addEventListener('click', skipForward);
   el.skipBackBtn.addEventListener('click', skipBackward);

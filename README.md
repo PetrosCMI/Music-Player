@@ -8,7 +8,7 @@ A web-based audio player built with vanilla HTML/CSS/JS — no build step, no de
 - **Playback survives screen off** — uses a Web Audio keep-alive so playback continues when the display is off (Android; iOS has platform limits with a pure PWA).
 - **Bluetooth headset controls** — wired through the MediaSession API:
   - Single press → play/pause
-- **Play / Pause / Stop buttons** — PLAY (center) starts playback and adds 15 min to the playback timer (each press adds another 15 min, up to a 90 min cap); PAUSE sits directly above PLAY and pauses without touching the timer; STOP sits directly below PLAY and pauses + resets the timer. Remaining time is shown in the center of the PLAY button while the timer runs. When the timer expires, playback pauses. State persists across reloads.
+- **Play / Pause / Stop buttons** — PLAY (center) starts playback and adds 15 min to the playback timer (each press adds another 15 min; pressing when it would exceed the 90 min cap resets the timer to zero). The toggle button above PLAY switches between ▶ and ⏸ to reflect the action it will perform. STOP below PLAY pauses and resets the timer. Remaining time is shown in the center of the PLAY button while the timer runs. When the timer expires, playback pauses. State persists across reloads.
 - **Persistent playlist** — tracks, current track, and playback position are saved to IndexedDB and restored on next open.
 - **Playback speed** — slider + ±0.1 buttons (0.25x–4.0x). Speed changes pitch (standard web-player behavior; see notes).
 - **Loop modes** — Off → Repeat One → Loop All (button cycling).
@@ -19,7 +19,7 @@ A web-based audio player built with vanilla HTML/CSS/JS — no build step, no de
 | Control | Screen | Headset |
 |---|---|---|
 | Play (+15 min timer per press) | ✓ | Single press |
-| Pause | ✓ | Single press |
+| Play/Pause toggle | ✓ | Single press |
 | Stop (reset timer) | ✓ | — |
 | Skip forward 60s | ✓ | — |
 | Loop off / one / all | ✓ | — |
