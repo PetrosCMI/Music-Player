@@ -8,7 +8,7 @@
 const DB_NAME = 'audio-player-db';
 const STORE = 'tracks';
 const META_KEY = '__meta'; // { currentTrackIndex, currentTime }
-const APP_VERSION = '1.0.6';
+const APP_VERSION = '1.0.7';
 
 // ---- State ----
 const state = {
@@ -47,8 +47,6 @@ function cacheDom() {
   el.speedDownBtn = document.getElementById('speedDownBtn');
   el.addBtn = document.getElementById('addBtn');
   el.clearBtn = document.getElementById('clearBtn');
-  el.sleepBtn = document.getElementById('sleepBtn');
-  el.sleepLabel = document.getElementById('sleepLabel');
   el.fileInput = document.getElementById('fileInput');
   el.playlist = document.getElementById('playlist');
   el.trackCount = document.getElementById('trackCount');
@@ -234,23 +232,13 @@ function prevTrack() {
   loadTrack(idx);
 }
 
-// ---- Sleep timer ----
-// The sleep/playback timer counts down from state.sleepTimerExpiresAt (epoch ms).
-// A short press on the play button adds 15 min; the sleep button cycles presets.
-const SLEEP_OPTIONS = [0, 15, 30, 45, 60]; // minutes; 0 = off
+// ---- Playback (sleep) timer ----
+// The playback timer counts down from state.sleepTimerExpiresAt (epoch ms)
+// and its remaining time is shown in the center of the PLAY button.
+// A short press on the play button adds 15 min; a long press plays without
+// touching the timer.
 const sleepRemainingSec = () =>
   state.sleepTimerExpiresAt ? Math.ceil((state.sleepTimerExpiresAt - Date.now()) / 1000) : 0;
-
-function setSleepTimer() {
-  const remaining = sleepRemainingSec();
-  const currentMin = remaining > 0 ? Math.ceil(remaining / 60) : 0;
-  const i = SLEEP_OPTIONS.indexOf(currentMin);
-  const nextMin = SLEEP_OPTIONS[(i + 1) % SLEEP_OPTIONS.length];
-  state.sleepTimerMinutes = nextMin;
-  state.sleepTimerExpiresAt = nextMin > 0 ? Date.now() + nextMin * 60000 : null;
-  renderSleepTimer();
-  saveState();
-}
 
 // Add minutes to the playback timer, extending any running countdown.
 function addSleepMinutes(minutes) {
@@ -264,11 +252,6 @@ function addSleepMinutes(minutes) {
 }
 
 function renderSleepTimer() {
-  const remaining = sleepRemainingSec();
-  const active = remaining > 0;
-  el.sleepBtn.classList.toggle('active', active);
-  el.sleepBtn.title = `Sleep timer: ${active ? `${Math.ceil(remaining / 60)} min` : 'off'}`;
-  el.sleepLabel.textContent = active ? `${Math.ceil(remaining / 60)}m` : '0m';
   renderPlayCountdown();
 }
 
@@ -399,29 +382,39 @@ function setupMediaSession() {
 // ---- Event wiring ----
 function wireEvents() {
   // Play button: short press = play + add 15 min to the playback timer;
-  // long press (held 500ms+) = play with no timer. Presses are detected via
-  // pointer events so hold duration can be measured (click can't).
-  let holdStart = 0;
+  // long press (500ms) = play with NO timer.
+  // The long-press action fires from a timer started on pointerdown (not on
+  // pointerup), because Android can cancel pointerup on held gestures.
+  let longPressTimer = null;
+  let longPressFired = false;
   const LONG_PRESS_MS = 500;
+
+  const cancelHold = () => {
+    if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
+  };
 
   el.playPauseBtn.addEventListener('contextmenu', e => e.preventDefault());
   el.playPauseBtn.addEventListener('pointerdown', () => {
-    holdStart = Date.now();
+    longPressFired = false;
+    cancelHold();
+    longPressTimer = setTimeout(() => {
+      longPressFired = true;
+      togglePlayPause(); // long press: toggle playback, timer untouched
+    }, LONG_PRESS_MS);
   });
   el.playPauseBtn.addEventListener('pointerup', () => {
-    const held = Date.now() - holdStart;
-    holdStart = 0;
-    if (held >= LONG_PRESS_MS) {
-      // Long press: toggle playback WITHOUT touching the timer.
-      togglePlayPause();
-    } else {
-      // Short press: start playing and add 15 min to the playback timer.
-      const wasPaused = !audioElement || audioElement.paused;
-      togglePlayPause();
-      if (wasPaused) addSleepMinutes(15);
-    }
+    cancelHold();
+    if (longPressFired) return;
+    // Short press: start playing and add 15 min to the playback timer.
+    const wasPaused = !audioElement || audioElement.paused;
+    togglePlayPause();
+    if (wasPaused) addSleepMinutes(15);
   });
-  el.playPauseBtn.addEventListener('pointercancel', () => { holdStart = 0; });
+  el.playPauseBtn.addEventListener('pointercancel', () => {
+    // Gesture hijacked by the OS; if the long-press timer already fired we
+    // leave the playback toggle as-is, otherwise do nothing.
+    cancelHold();
+  });
   el.skipFrontBtn.addEventListener('click', skipForward);
   el.skipBackBtn.addEventListener('click', skipBackward);
   el.nextBtn.addEventListener('click', nextTrack);
@@ -454,8 +447,6 @@ function wireEvents() {
     renderPlaylist(); updateNowPlaying(); setPlayIcon(true);
     saveState();
   });
-
-  el.sleepBtn.addEventListener('click', setSleepTimer);
 
   document.addEventListener('keydown', e => {
     switch (e.code) {
