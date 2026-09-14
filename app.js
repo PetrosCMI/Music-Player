@@ -8,7 +8,7 @@
 const DB_NAME = 'audio-player-db';
 const STORE = 'tracks';
 const META_KEY = '__meta'; // { currentTrackIndex, currentTime }
-const APP_VERSION = '1.0.7';
+const APP_VERSION = '1.0.8';
 
 // ---- State ----
 const state = {
@@ -30,9 +30,9 @@ function cacheDom() {
   el.seekSlider = document.getElementById('seekSlider');
   el.currentTimeEl = document.getElementById('currentTime');
   el.durationEl = document.getElementById('duration');
-  el.playPauseBtn = document.getElementById('playPauseBtn');
-  el.playIcon = document.getElementById('playIcon');
-  el.pauseIcon = document.getElementById('pauseIcon');
+  el.playBtn = document.getElementById('playBtn');
+  el.pauseBtn = document.getElementById('pauseBtn');
+  el.stopBtn = document.getElementById('stopBtn');
   el.playCountdown = document.getElementById('playCountdown');
   el.skipFrontBtn = document.getElementById('skipFrontBtn');
   el.skipBackBtn = document.getElementById('skipBackBtn');
@@ -190,15 +190,31 @@ async function loadTrack(index, resumeFromStart = true) {
   }
 }
 
-function togglePlayPause() {
+function playAudio() {
   ensureAudio();
-  if (window.audioCtx && window.audioCtx.state === 'suspended') window.audioCtx.resume();
   if (!audioElement) return;
   if (audioElement.paused) {
     audioElement.play().catch(e => console.warn('play failed', e));
-  } else {
-    audioElement.pause();
   }
+}
+
+function pauseAudio() {
+  if (audioElement && !audioElement.paused) audioElement.pause();
+}
+
+// Stop: pause playback and reset the playback timer.
+function stopPlayback() {
+  pauseAudio();
+  state.sleepTimerMinutes = 0;
+  state.sleepTimerExpiresAt = null;
+  renderSleepTimer();
+  saveState();
+}
+
+function togglePlayPause() {
+  ensureAudio();
+  if (!audioElement) return;
+  if (audioElement.paused) playAudio(); else pauseAudio();
 }
 
 function skipForward() {
@@ -259,7 +275,7 @@ function renderSleepTimer() {
 function renderPlayCountdown() {
   const remaining = sleepRemainingSec();
   const active = remaining > 0;
-  el.playPauseBtn.classList.toggle('timer-active', active);
+  el.playBtn.classList.toggle('timer-active', active);
   if (!active) {
     el.playCountdown.classList.add('hidden');
     return;
@@ -331,8 +347,8 @@ function escapeHtml(s) {
 }
 
 function setPlayIcon(paused) {
-  el.playIcon.classList.toggle('hidden', !paused);
-  el.pauseIcon.classList.toggle('hidden', paused);
+  // Play and pause are now separate buttons, so there is no icon state to
+  // toggle; just keep the track-art playing animation in sync.
   if (state.currentIndex >= 0) el.trackArt.classList.toggle('playing', !paused);
 }
 
@@ -381,40 +397,13 @@ function setupMediaSession() {
 
 // ---- Event wiring ----
 function wireEvents() {
-  // Play button: short press = play + add 15 min to the playback timer;
-  // long press (500ms) = play with NO timer.
-  // The long-press action fires from a timer started on pointerdown (not on
-  // pointerup), because Android can cancel pointerup on held gestures.
-  let longPressTimer = null;
-  let longPressFired = false;
-  const LONG_PRESS_MS = 500;
-
-  const cancelHold = () => {
-    if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
-  };
-
-  el.playPauseBtn.addEventListener('contextmenu', e => e.preventDefault());
-  el.playPauseBtn.addEventListener('pointerdown', () => {
-    longPressFired = false;
-    cancelHold();
-    longPressTimer = setTimeout(() => {
-      longPressFired = true;
-      togglePlayPause(); // long press: toggle playback, timer untouched
-    }, LONG_PRESS_MS);
+  // Play: start playing and add 15 min to the playback timer (accumulates).
+  el.playBtn.addEventListener('click', () => {
+    playAudio();
+    addSleepMinutes(15);
   });
-  el.playPauseBtn.addEventListener('pointerup', () => {
-    cancelHold();
-    if (longPressFired) return;
-    // Short press: start playing and add 15 min to the playback timer.
-    const wasPaused = !audioElement || audioElement.paused;
-    togglePlayPause();
-    if (wasPaused) addSleepMinutes(15);
-  });
-  el.playPauseBtn.addEventListener('pointercancel', () => {
-    // Gesture hijacked by the OS; if the long-press timer already fired we
-    // leave the playback toggle as-is, otherwise do nothing.
-    cancelHold();
-  });
+  el.pauseBtn.addEventListener('click', pauseAudio);
+  el.stopBtn.addEventListener('click', stopPlayback);
   el.skipFrontBtn.addEventListener('click', skipForward);
   el.skipBackBtn.addEventListener('click', skipBackward);
   el.nextBtn.addEventListener('click', nextTrack);

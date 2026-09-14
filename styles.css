@@ -184,6 +184,16 @@ body {
   position: relative;
 }
 
+.ctrl-btn.pause, .ctrl-btn.stop {
+  width: 44px;
+  height: 44px;
+  color: var(--text-muted);
+}
+
+.ctrl-btn.pause:active, .ctrl-btn.stop:active {
+  background: var(--surface-2);
+}
+
 /* Remaining playback time shown centered over the play button */
 .play-countdown {
   position: absolute;
