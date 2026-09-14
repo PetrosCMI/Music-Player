@@ -8,7 +8,7 @@
 const DB_NAME = 'audio-player-db';
 const STORE = 'tracks';
 const META_KEY = '__meta'; // { currentTrackIndex, currentTime }
-const APP_VERSION = '1.0.8';
+const APP_VERSION = '1.0.9';
 
 // ---- State ----
 const state = {
@@ -251,18 +251,23 @@ function prevTrack() {
 // ---- Playback (sleep) timer ----
 // The playback timer counts down from state.sleepTimerExpiresAt (epoch ms)
 // and its remaining time is shown in the center of the PLAY button.
-// A short press on the play button adds 15 min; a long press plays without
-// touching the timer.
+// Each press of PLAY adds 15 min; the timer caps at MAX_TIMER_MINUTES.
+const MAX_TIMER_MINUTES = 90;
 const sleepRemainingSec = () =>
   state.sleepTimerExpiresAt ? Math.ceil((state.sleepTimerExpiresAt - Date.now()) / 1000) : 0;
 
 // Add minutes to the playback timer, extending any running countdown.
+// The total remaining time never exceeds MAX_TIMER_MINUTES.
 function addSleepMinutes(minutes) {
-  const base = state.sleepTimerExpiresAt && state.sleepTimerExpiresAt > Date.now()
+  const now = Date.now();
+  const base = state.sleepTimerExpiresAt && state.sleepTimerExpiresAt > now
     ? state.sleepTimerExpiresAt
-    : Date.now();
-  state.sleepTimerExpiresAt = base + minutes * 60000;
-  state.sleepTimerMinutes = Math.ceil(minutes);
+    : now;
+  let expires = base + minutes * 60000;
+  const cap = now + MAX_TIMER_MINUTES * 60000;
+  if (expires > cap) expires = cap;
+  state.sleepTimerExpiresAt = expires;
+  state.sleepTimerMinutes = Math.ceil(sleepRemainingSec() / 60);
   renderSleepTimer();
   saveState();
 }

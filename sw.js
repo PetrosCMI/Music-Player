@@ -1,5 +1,5 @@
 // Service worker: cache the app shell for offline use.
-const CACHE = 'audio-player-v6';
+const CACHE = 'audio-player-v7';
 const ASSETS = [
   './',
   './index.html',

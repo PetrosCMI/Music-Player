@@ -194,6 +194,14 @@ body {
   background: var(--surface-2);
 }
 
+/* Vertical stack: pause above, stop below the big play button */
+.play-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
 /* Remaining playback time shown centered over the play button */
 .play-countdown {
   position: absolute;

@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#0f0f0f">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>Audio Player 1.0.8</title>
+  <title>Audio Player 1.0.9</title>
   <link rel="manifest" href="manifest.json">
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -14,7 +14,7 @@
   <div id="app">
     <!-- Header -->
     <header class="app-header">
-      <h1>Audio Player <span class="version">1.0.8</span></h1>
+      <h1>Audio Player <span class="version">1.0.9</span></h1>
     </header>
 
     <!-- Now Playing display -->
@@ -46,10 +46,20 @@
           <svg viewBox="0 0 24 24" width="28" height="28"><path fill="currentColor" d="M11 18V6l-8.5 6 8.5 6zm11-6h-8v6h8z"/></svg>
         </button>
 
-        <button id="playBtn" class="ctrl-btn play" title="Play and add 15 minutes">
-          <svg viewBox="0 0 24 24" width="40" height="40"><path fill="currentColor" d="M8 5v14l11-7z"/></svg>
-          <span id="playCountdown" class="play-countdown hidden"></span>
-        </button>
+        <div class="play-stack">
+          <button id="pauseBtn" class="ctrl-btn pause" title="Pause">
+            <svg viewBox="0 0 24 24" width="26" height="26"><path fill="currentColor" d="M6 19h4V5H6zm8-14v14h4V5z"/></svg>
+          </button>
+
+          <button id="playBtn" class="ctrl-btn play" title="Play and add 15 minutes">
+            <svg viewBox="0 0 24 24" width="40" height="40"><path fill="currentColor" d="M8 5v14l11-7z"/></svg>
+            <span id="playCountdown" class="play-countdown hidden"></span>
+          </button>
+
+          <button id="stopBtn" class="ctrl-btn stop" title="Stop and reset timer">
+            <svg viewBox="0 0 24 24" width="26" height="26"><path fill="currentColor" d="M6 6h12v12H6z"/></svg>
+          </button>
+        </div>
 
         <button id="skipFrontBtn" class="ctrl-btn skip" title="Skip forward 60s">
           <svg viewBox="0 0 24 24" width="28" height="28"><path fill="currentColor" d="M4 18l8.5-6L4 6v12zm9-12v12h8V6z"/></svg>
@@ -61,14 +71,6 @@
       </div>
 
       <div class="controls-row">
-        <button id="pauseBtn" class="ctrl-btn pause" title="Pause">
-          <svg viewBox="0 0 24 24" width="26" height="26"><path fill="currentColor" d="M6 19h4V5H6zm8-14v14h4V5z"/></svg>
-        </button>
-
-        <button id="stopBtn" class="ctrl-btn stop" title="Stop and reset timer">
-          <svg viewBox="0 0 24 24" width="26" height="26"><path fill="currentColor" d="M6 6h12v12H6z"/></svg>
-        </button>
-
         <button id="loopBtn" class="ctrl-btn loop" title="Loop: off">
           <svg id="loopIcon" viewBox="0 0 24 24" width="50" height="50"><rect x="0" y="0" width="24" height="24" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><text x="12" y="16" font-size="12" text-anchor="middle" fill="#ffffff" font-weight="bold">0</text></svg>
         </button>
